@@ -50,7 +50,7 @@ const LuxuryKCCLanding = () => {
     },
     {
       icon: Award,
-      titleSo: "Tayada Sare",
+      titleSo: "Tayo Sare",
       titleEn: "Premium Quality",
       descSo: "Maacuun sare iyo adeeg hufan",
       descEn: "Uncompromising standards in every detail",
@@ -306,7 +306,7 @@ const LuxuryKCCLanding = () => {
             <h1 className="font-serif text-6xl md:text-8xl font-bold text-white mb-6">
               <span className="gradient-text">KCC</span>
               <span className="block text-3xl md:text-5xl font-light text-amber-300 mt-2">
-                Restaurant
+                Cafe, Restaurant and Hotel
               </span>
             </h1>
           </div>
@@ -328,7 +328,7 @@ const LuxuryKCCLanding = () => {
               </span>
             </button>
             <button className="border-2 border-white text-white px-12 py-4 rounded-full font-sans font-medium hover:bg-white hover:text-stone-900 transition-all duration-300 shadow-xl">
-              Make Reservation
+              Make Reservation and Call.
             </button>
           </div>
         </div>

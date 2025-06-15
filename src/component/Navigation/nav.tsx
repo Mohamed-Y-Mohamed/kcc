@@ -202,6 +202,37 @@ const Navigation = () => {
         .underline-effect:hover::after {
           width: 100%;
         }
+
+        /* Responsive text adjustments */
+        @media (max-width: 640px) {
+          .logo-text-main {
+            font-size: 0.9rem;
+            line-height: 1.2;
+          }
+          .logo-text-sub {
+            font-size: 0.65rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .logo-text-main {
+            font-size: 0.8rem;
+            line-height: 1.1;
+          }
+          .logo-text-sub {
+            font-size: 0.6rem;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .logo-text-main {
+            font-size: 0.7rem;
+            line-height: 1.1;
+          }
+          .logo-text-sub {
+            font-size: 0.55rem;
+          }
+        }
       `}</style>
 
       <nav
@@ -217,31 +248,31 @@ const Navigation = () => {
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-18 lg:h-20">
             {/* Logo Section */}
-            <div className="flex items-center space-x-4 hover-scale">
+            <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 hover-scale flex-shrink-0">
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="relative focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-full"
                 aria-label="Go to homepage"
               >
                 <div
-                  className={`w-14 h-14 rounded-full shadow-lg overflow-hidden border-2 transition-all duration-500 hover-scale ${
+                  className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full shadow-lg overflow-hidden border-2 transition-all duration-500 hover-scale ${
                     isDark ? "border-amber-400/40" : "border-amber-600/50"
                   }`}
                 >
                   <img
-                    src="/logo.jpeg"
+                    src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100&h=100&fit=crop&crop=center"
                     alt="KCC Restaurant Logo"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-500 to-orange-500 rounded-full pulsing-dot" />
+                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-red-500 to-orange-500 rounded-full pulsing-dot" />
               </button>
-              <div className="flex flex-col">
+              <div className="flex flex-col min-w-0 flex-1">
                 <span
-                  className={`font-serif font-light text-xl tracking-wide transition-all duration-500 ${
+                  className={`font-serif font-light tracking-wide transition-all duration-500 logo-text-main truncate ${
                     isScrolled
                       ? isDark
                         ? "text-stone-100"
@@ -251,17 +282,17 @@ const Navigation = () => {
                       : "text-stone-100"
                   }`}
                 >
-                  KCC Cafe, Restaurant and Hotel
+                  KCC Cafe, Restaurant & Hotel
                 </span>
                 <span
-                  className={`font-sans text-xs font-light italic transition-all duration-500 ${
+                  className={`font-sans font-light italic transition-all duration-500 logo-text-sub truncate ${
                     isScrolled
                       ? isDark
                         ? "text-stone-300/80"
                         : "text-stone-700/80"
                       : isDark
                       ? "text-amber-200/90"
-                      : "text-stone-400"
+                      : "text-stone-300/90"
                   }`}
                 >
                   Qahwo & Cunto Soomaali
@@ -271,13 +302,13 @@ const Navigation = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:block">
-              <div className="flex items-center space-x-8">
+              <div className="flex items-center space-x-6 xl:space-x-8">
                 {navItems.map((item) => (
                   <button
                     key={item.href}
                     onClick={() => handleNavigation(item)}
                     disabled={isNavigating}
-                    className={`relative px-4 py-2 text-sm font-light tracking-wide transition-all duration-500 group focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg disabled:opacity-50 hover-lift ${
+                    className={`relative px-3 py-2 text-sm font-light tracking-wide transition-all duration-500 group focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg disabled:opacity-50 hover-lift ${
                       isScrolled
                         ? isDark
                           ? "text-stone-300 hover:text-amber-400"
@@ -310,24 +341,24 @@ const Navigation = () => {
             </div>
 
             {/* Theme Toggle & Mobile Menu */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
-                className={`p-3 rounded-full transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-amber-400 hover-scale ${
+                className={`p-2 sm:p-3 rounded-full transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-amber-400 hover-scale ${
                   isDark
                     ? "bg-amber-400/20 text-amber-400 hover:bg-amber-400/30 shadow-lg"
                     : isScrolled
                     ? "bg-amber-600/20 text-amber-700 hover:bg-amber-600/30 shadow-lg"
-                    : "bg-stone-800/20 text-stone-100 hover:bg-stone-800/30 shadow-md"
+                    : "bg-white/20 text-white hover:bg-white/30 shadow-md border border-white/30"
                 }`}
                 aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
               >
-                <div className="relative w-5 h-5">
+                <div className="relative w-4 h-4 sm:w-5 sm:h-5">
                   {isDark ? (
-                    <Sun className="w-5 h-5 transition-all duration-500 hover:rotate-180" />
+                    <Sun className="w-4 h-4 sm:w-5 sm:h-5 transition-all duration-500 hover:rotate-180" />
                   ) : (
-                    <Moon className="w-5 h-5 transition-all duration-500 hover:rotate-12" />
+                    <Moon className="w-4 h-4 sm:w-5 sm:h-5 transition-all duration-500 hover:rotate-12" />
                   )}
                 </div>
               </button>
@@ -335,21 +366,21 @@ const Navigation = () => {
               {/* Mobile Menu Button */}
               <button
                 onClick={toggleMobileMenu}
-                className={`lg:hidden p-3 rounded-full transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-amber-400 hover-scale ${
+                className={`lg:hidden p-2 sm:p-3 rounded-full transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-amber-400 hover-scale ${
                   isDark
                     ? "text-amber-400 hover:bg-amber-400/20"
                     : isScrolled
                     ? "text-amber-600 hover:bg-amber-600/20"
-                    : "text-stone-800 hover:bg-stone-800/20"
+                    : "text-white hover:bg-white/20 bg-white/10 border border-white/30 shadow-md"
                 }`}
                 aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={isMobileMenuOpen}
               >
-                <div className="relative w-6 h-6">
+                <div className="relative w-5 h-5 sm:w-6 sm:h-6">
                   {isMobileMenuOpen ? (
-                    <X className="w-6 h-6 transition-all duration-300 hover:rotate-90" />
+                    <X className="w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 hover:rotate-90" />
                   ) : (
-                    <Menu className="w-6 h-6 transition-all duration-300" />
+                    <Menu className="w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300" />
                   )}
                 </div>
               </button>
@@ -365,13 +396,13 @@ const Navigation = () => {
                   : "border-amber-600/30 bg-stone-50/95"
               }`}
             >
-              <div className="px-4 py-6 space-y-4">
+              <div className="px-3 py-4 sm:px-4 sm:py-6 space-y-3 sm:space-y-4">
                 {navItems.map((item) => (
                   <button
                     key={item.href}
                     onClick={() => handleNavigation(item)}
                     disabled={isNavigating}
-                    className={`block w-full text-left px-4 py-3 rounded-lg font-light tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50 hover-scale ${
+                    className={`block w-full text-left px-3 py-2 sm:px-4 sm:py-3 rounded-lg font-light tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50 hover-scale ${
                       isDark
                         ? "text-stone-300 hover:text-amber-400 hover:bg-amber-400/10"
                         : "text-stone-700 hover:text-amber-600 hover:bg-amber-600/10"
@@ -379,9 +410,11 @@ const Navigation = () => {
                     aria-label={`Navigate to ${item.labelEn}`}
                   >
                     <div className="flex justify-between items-center">
-                      <span className="font-serif">{item.label}</span>
+                      <span className="font-serif text-sm sm:text-base">
+                        {item.label}
+                      </span>
                       <span
-                        className={`text-sm opacity-70 italic transition-all duration-500 font-sans ${
+                        className={`text-xs sm:text-sm opacity-70 italic transition-all duration-500 font-sans ${
                           isDark ? "text-stone-400" : "text-stone-600"
                         }`}
                       >
@@ -390,23 +423,6 @@ const Navigation = () => {
                     </div>
                   </button>
                 ))}
-
-                {/* Mobile Reserve Button */}
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`w-full mt-6 px-6 py-3 rounded-full font-sans font-medium transition-all duration-500 hover-scale shadow-lg ${
-                    isDark
-                      ? "bg-amber-600 text-white hover:bg-amber-500"
-                      : "bg-stone-900 text-white hover:bg-amber-600"
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-serif">Dalbo</span>
-                    <span className="text-sm opacity-90 font-sans">
-                      Reserve
-                    </span>
-                  </div>
-                </button>
               </div>
             </div>
           )}

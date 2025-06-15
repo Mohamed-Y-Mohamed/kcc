@@ -208,7 +208,8 @@ const Footer = () => {
                   </div>
                   <div>
                     <h3 className="font-serif text-2xl font-bold text-white mb-1">
-                      <span className="gradient-text">KCC</span> Restaurant
+                      <span className="gradient-text">KCC</span> Cafe,
+                      Restaurant and Hotel
                     </h3>
                     <p className="font-sans text-amber-200 text-sm italic">
                       Qahwo & Cunto Soomaali Ah

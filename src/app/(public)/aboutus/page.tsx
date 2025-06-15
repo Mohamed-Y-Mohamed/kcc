@@ -217,7 +217,7 @@ const LuxuryAboutPage = () => {
               Ku Aqoon <span className="gradient-text">KCC</span>
             </h1>
             <h2 className="font-serif text-2xl md:text-3xl font-light text-amber-300 mb-6">
-              Discover KCC Restaurant
+              Discover KCC Cafe, Restaurant and Hotel
             </h2>
           </div>
 

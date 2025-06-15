@@ -98,7 +98,7 @@ const LuxuryContactPage = () => {
                     color: ${isDark ? "#ffffff" : "#1c1c1c"};
                     font-family: 'Playfair Display', serif;
                   ">
-                    KCC Restaurant
+                    KCC Cafe, Restaurant and Hotel
                   </h3>
                   <p style="
                     margin: 0;
@@ -511,7 +511,7 @@ const LuxuryContactPage = () => {
               <span className="gradient-text">Nagu Soo Booqo</span>
             </h1>
             <h2 className="font-serif text-2xl md:text-3xl font-light text-amber-300 mb-6">
-              Visit Us at KCC Restaurant
+              Visit Us at KCC Cafe, Restaurant and Hotel
             </h2>
           </div>
 

@@ -251,7 +251,7 @@ const Navigation = () => {
                       : "text-stone-100"
                   }`}
                 >
-                  KCC Restaurant
+                  KCC Cafe, Restaurant and Hotel
                 </span>
                 <span
                   className={`font-sans text-xs font-light italic transition-all duration-500 ${

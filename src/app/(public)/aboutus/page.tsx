@@ -1,19 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import {
   Heart,
   Award,
   Users,
-  Crown,
   Coffee,
   ChefHat,
-  Star,
   Globe,
-  Clock,
-  Sparkles,
-  Map,
   Target,
-  Eye,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -309,14 +303,16 @@ const LuxuryAboutPage = () => {
                     isDark ? "text-amber-300" : "text-amber-700"
                   }`}
                 >
-                  "Cuntada waa luuqad aan erayo lahayn oo dadka ku midaysa"
+                  &quot;Cuntada waa luuqad aan erayo lahayn oo dadka ku
+                  midaysa&quot;
                 </blockquote>
                 <p
                   className={`font-sans text-sm transition-all duration-700 ${
                     isDark ? "text-stone-400" : "text-stone-500"
                   }`}
                 >
-                  "Food is a language without words that unites people"
+                  &quot;Food is a language without words that unites
+                  people&quot;
                 </p>
               </div>
             </div>

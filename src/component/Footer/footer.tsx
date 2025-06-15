@@ -230,7 +230,7 @@ const Footer = () => {
 
                 {/* Social Media */}
                 <div className="flex space-x-4">
-                  {socialLinks.map((social, index) => (
+                  {socialLinks.map((social) => (
                     <a
                       key={social.label}
                       href={social.href}
@@ -259,7 +259,7 @@ const Footer = () => {
                 </p>
 
                 <ul className="space-y-4">
-                  {quickLinks.map((link, index) => (
+                  {quickLinks.map((link) => (
                     <li key={link.href}>
                       <a
                         href={link.href}

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KCC Coffee and REstaurant",
+  title: "KCC Coffee and Restaurant",
   description:
     "Coffee and Restaurant is a modern, cozy place to enjoy delicious coffee and meals.",
   icons: {

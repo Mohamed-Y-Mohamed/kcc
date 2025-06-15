@@ -232,7 +232,7 @@ const Navigation = () => {
                   }`}
                 >
                   <img
-                    src="https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=100&q=80"
+                    src="/logo.jpeg"
                     alt="KCC Restaurant Logo"
                     className="w-full h-full object-cover"
                   />

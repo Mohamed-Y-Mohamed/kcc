@@ -5,9 +5,7 @@ import {
   Phone,
   Clock,
   Mail,
-  Calendar,
   Users,
-  MessageSquare,
   ArrowRight,
   Star,
   Award,
@@ -38,11 +36,6 @@ const LuxuryContactPage = () => {
   const [submitStatus, setSubmitStatus] = useState("");
 
   // Restaurant coordinates (Approximate for Somalia)
-  const restaurantLocation = {
-    lat: 2.0469,
-    lng: 45.3182,
-    address: "Argo Street, Golol, Somalia",
-  };
 
   // Initialize Interactive Map with multiple fallback options
   useEffect(() => {
@@ -697,7 +690,7 @@ const LuxuryContactPage = () => {
                 isDark ? "text-stone-300" : "text-stone-600"
               }`}
             >
-              Make a Reservation — Secure your table at Somalia's premier
+              Make a Reservation — Secure your table at Somalia&apos;s premier
               restaurant
             </p>
           </div>
@@ -714,8 +707,8 @@ const LuxuryContactPage = () => {
                   Mahadsanid!
                 </h3>
                 <p className="font-sans text-green-300">
-                  Your reservation request has been submitted. We'll contact you
-                  shortly to confirm.
+                  Your reservation request has been submitted. We&apos;ll
+                  contact you shortly to confirm.
                 </p>
               </div>
             )}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React,  from "react";
 import {
   Coffee,
   UtensilsCrossed,
@@ -9,7 +9,6 @@ import {
   Sparkles,
   Clock,
   MapPin,
-  Award,
   Crown,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
@@ -389,7 +388,7 @@ const LuxuryMenuPage = () => {
             <div className="mb-12">
               <div className="w-32 h-32 mx-auto rounded-full overflow-hidden shadow-2xl border-4 border-amber-400/40 hover-scale">
                 <img
-                  src="https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=200&q=80"
+                  src="/logo.jpeg"
                   alt="KCC Restaurant Logo"
                   className="w-full h-full object-cover"
                 />

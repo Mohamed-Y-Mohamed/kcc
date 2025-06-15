@@ -8,13 +8,10 @@ import {
   Mail,
   Coffee,
   Utensils,
-  Heart,
   Star,
   ChevronLeft,
   ChevronRight,
   Award,
-  Users,
-  Calendar,
   ArrowRight,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
@@ -300,7 +297,7 @@ const LuxuryKCCLanding = () => {
             <div className="mb-8">
               <div className="w-32 h-32 mx-auto rounded-full overflow-hidden shadow-2xl border-4 border-amber-400/30 hover-scale">
                 <img
-                  src="https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=200&q=80"
+                  src="/logo.jpeg"
                   alt="KCC Restaurant Logo"
                   className="w-full h-full object-cover"
                 />
@@ -319,8 +316,7 @@ const LuxuryKCCLanding = () => {
               Qahwo & Cunto Soomaali Ah
             </p>
             <p className="font-sans text-lg text-stone-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Where authentic Somali heritage meets contemporary luxury dining
-              experience
+              Where authentic heritage meets contemporary dining experience
             </p>
           </div>
 
@@ -717,14 +713,14 @@ const LuxuryKCCLanding = () => {
                     isDark ? "text-stone-200" : "text-stone-700"
                   }`}
                 >
-                  "{testimonial.textSo}"
+                  &quot;{testimonial.textSo}&quot;
                 </blockquote>
                 <blockquote
                   className={`font-sans text-sm mb-6 italic leading-relaxed transition-all duration-700 ${
                     isDark ? "text-stone-300" : "text-stone-500"
                   }`}
                 >
-                  "{testimonial.textEn}"
+                  &quot;{testimonial.textEn}&quot;
                 </blockquote>
                 <div>
                   <p

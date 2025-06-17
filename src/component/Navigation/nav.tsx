@@ -61,11 +61,18 @@ const Navigation = () => {
     { href: "/", label: "Guriga", labelEn: "Home", type: "route" },
     { href: "/menu", label: "Menu", labelEn: "Menu", type: "route" },
     {
+      href: "/Hotel",
+      label: "hoteel",
+      labelEn: "Hotel",
+      type: "route",
+    },
+    {
       href: "/aboutus",
       label: "Ku saabsan",
       labelEn: "about us",
       type: "route",
     },
+
     {
       href: "/contactus",
       label: "Xiriir",

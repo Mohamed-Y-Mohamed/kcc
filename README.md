@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KCC Website
 
-## Getting Started
+KCC is a Next.js website for a coffee, restaurant and hotel business. The current repository contains public landing, about, menu and contact pages, shared navigation/footer components, theme support and Firebase Analytics initialisation.
 
-First, run the development server:
+## Features
+
+- Present a public landing page with business content and media.
+- Display dedicated about, menu and contact pages.
+- Provide shared responsive navigation and footer components.
+- Support application theme state through a React context.
+- Use Framer Motion for interface animation.
+- Initialise Firebase Analytics in the browser.
+- Include an introductory video and branded image/favicon assets.
+
+The `/Hotel` route currently contains an empty page file, so no hotel-booking or hotel-page functionality is claimed.
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 |
+| UI | React 19, TypeScript, Tailwind CSS 4 |
+| Animation | Framer Motion |
+| Icons | Lucide React |
+| Analytics | Firebase Analytics |
+
+## Requirements
+
+- Node.js and npm. The repository does not pin an exact Node.js version.
+
+## Installation
+
+```bash
+git clone https://github.com/Mohamed-Y-Mohamed/kcc.git
+cd kcc
+npm install
+```
+
+## Running locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Next.js uses port 3000 by default when available.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Building
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Firebase configuration
 
-To learn more about Next.js, take a look at the following resources:
+Firebase web configuration is currently hardcoded in `src/lib/firebase.ts`. These identifiers are browser-side Firebase configuration rather than private server credentials, but the associated Firebase/Google Cloud project should still use appropriate API restrictions and service security rules.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The current code initialises Firebase Analytics only; authentication, database, storage or booking features are not documented because their implementing code was not found.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testing and checks
 
-## Deploy on Vercel
+No automated test files or test script were found. `package.json` contains a `lint` script using `next lint`; with the current Next.js version this script should be verified locally before relying on it as a working check.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Licence
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT. See [LICENSE](LICENSE).

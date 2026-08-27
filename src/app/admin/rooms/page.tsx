@@ -456,7 +456,6 @@ function RoomsPage() {
             label="Sawirro — ikhtiyaari · Photos (optional)"
             values={form.images}
             onChange={(next) => set("images", next)}
-            folder="rooms"
             hint="The first photo is the one guests see on the room card."
           />
 

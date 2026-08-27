@@ -300,6 +300,7 @@ function MenuGallery({ items }: { items: MenuItem[] }) {
                   fill
                   sizes="(max-width: 640px) 50vw, 33vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  unoptimized
                 />
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-qaxwo/90 to-transparent p-3">
                   <span className="block font-display text-sm text-caano">

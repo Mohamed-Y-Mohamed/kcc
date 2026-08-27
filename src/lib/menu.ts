@@ -137,14 +137,9 @@ function toFirestore(input: Partial<MenuItemInput>): Record<string, FoodDocValue
   if (input.type !== undefined) out.type = input.type;
   if (input.image !== undefined) {
     out.image = input.image;
-    // Record where the file came from, the way the importer did.
-    out.imageSource = input.image
-      ? input.image.includes("firebasestorage")
-        ? "firebase"
-        : input.image.includes("supabase")
-        ? "supabase"
-        : "url"
-      : "none";
+    // The importer tracked where each file came from; everything added now
+    // is a plain link.
+    out.imageSource = input.image ? "url" : "none";
   }
   if (input.isActive !== undefined) out.isActive = input.isActive;
   if (input.popular !== undefined) out.popular = input.popular;

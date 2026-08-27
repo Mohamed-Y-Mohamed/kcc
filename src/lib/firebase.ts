@@ -1,7 +1,6 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
-import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -38,7 +37,9 @@ const app: FirebaseApp = getApps().length
 
 export const auth: Auth = getAuth(app);
 export const db: Firestore = getFirestore(app);
-export const storage: FirebaseStorage = getStorage(app);
+
+// Cloud Storage is deliberately not used. Images are referenced by URL, which
+// means one less Firebase product to enable, secure and pay for.
 
 /**
  * Analytics only exists in the browser and only when a measurement ID is set.

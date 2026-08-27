@@ -225,6 +225,7 @@ function RoomCard({
             fill
             sizes="(max-width: 768px) 100vw, 352px"
             className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="woven h-full w-full min-h-[14rem]" aria-hidden />

@@ -501,7 +501,6 @@ function MenuPage() {
             label="Photo — optional · Sawir (ikhtiyaari)"
             value={form.image}
             onChange={(url) => set("image", url)}
-            folder="menu"
             hint="Leave it empty and the menu just shows the name and price, which is how it reads now. Add photos whenever you have them."
           />
 

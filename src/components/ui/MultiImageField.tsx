@@ -1,56 +1,35 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, ImagePlus, Trash2, Upload } from "lucide-react";
-import { uploadImage } from "@/lib/upload";
+import { ChevronLeft, ChevronRight, ImagePlus, Trash2 } from "lucide-react";
 import { Button } from "./Button";
 import { ErrorNote } from "./Feedback";
 import { cn } from "@/lib/cn";
 
 /**
- * Gallery editor for rooms: add by upload or URL, remove, and reorder. The
- * first image is the cover used on cards and the room hero, so ordering is a
- * real editorial decision rather than decoration — hence the arrows.
+ * Gallery editor for rooms: add pictures by URL, remove them, and reorder.
+ *
+ * No file upload — Cloud Storage is not enabled on this project. The first
+ * image is the cover used on cards and the room hero, so ordering is a real
+ * editorial decision rather than decoration, hence the arrows.
  */
 export function MultiImageField({
   label,
   values,
   onChange,
-  folder,
   hint,
 }: {
   label: string;
   values: string[];
   onChange: (next: string[]) => void;
-  folder: string;
   hint?: string;
 }) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
-  const [urlDraft, setUrlDraft] = useState("");
 
-  async function handleFiles(files: FileList) {
-    setError("");
-    setUploading(true);
-    const added: string[] = [];
-    try {
-      for (const file of Array.from(files)) {
-        added.push(await uploadImage(file, folder));
-      }
-      onChange([...values, ...added]);
-    } catch (err) {
-      // Keep whatever did upload rather than throwing the batch away.
-      if (added.length) onChange([...values, ...added]);
-      setError(err instanceof Error ? err.message : "Upload failed.");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  function addUrl() {
-    const url = urlDraft.trim();
+  function add() {
+    const url = draft.trim();
     if (!url) return;
     if (!/^https?:\/\//i.test(url)) {
       setError("Image links need to start with http:// or https://");
@@ -58,7 +37,7 @@ export function MultiImageField({
     }
     setError("");
     onChange([...values, url]);
-    setUrlDraft("");
+    setDraft("");
   }
 
   function move(index: number, delta: number) {
@@ -79,7 +58,7 @@ export function MultiImageField({
       </div>
       {hint && <p className="-mt-1.5 text-xs text-ink-subtle">{hint}</p>}
 
-      {values.length > 0 && (
+      {values.length > 0 ? (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {values.map((url, i) => (
             <li
@@ -139,60 +118,34 @@ export function MultiImageField({
             </li>
           ))}
         </ul>
-      )}
-
-      {values.length === 0 && (
+      ) : (
         <div className="flex flex-col items-center gap-2 border border-dashed border-line px-4 py-8 text-center">
           <ImagePlus className="h-5 w-5 text-ink-subtle" />
-          <p className="text-sm text-ink-muted">No images yet</p>
+          <p className="text-sm text-ink-muted">Sawir ma jiro · No images yet</p>
           <p className="text-xs text-ink-subtle">
             Guests see a woven placeholder until you add one.
           </p>
         </div>
       )}
 
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="flex items-center gap-2">
         <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={(e) => {
-            if (e.target.files?.length) handleFiles(e.target.files);
-            e.target.value = "";
+          type="url"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
           }}
+          placeholder="Ku dhaji link sawir · Paste an image link"
+          aria-label="Image URL"
+          className="h-10 min-w-0 flex-1 rounded-[2px] border border-line bg-surface-raised px-3 text-sm text-ink placeholder:text-ink-subtle"
         />
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          loading={uploading}
-          onClick={() => fileRef.current?.click()}
-        >
-          {!uploading && <Upload className="h-3.5 w-3.5" />}
-          {uploading ? "Uploading…" : "Upload images"}
+        <Button type="button" variant="secondary" size="sm" onClick={add}>
+          Ku dar · Add
         </Button>
-
-        <div className="flex flex-1 items-center gap-2">
-          <input
-            type="url"
-            value={urlDraft}
-            onChange={(e) => setUrlDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addUrl();
-              }
-            }}
-            placeholder="…or paste an image link"
-            aria-label="Image URL"
-            className="h-9 min-w-0 flex-1 rounded-[2px] border border-line bg-surface-raised px-3 text-sm text-ink placeholder:text-ink-subtle"
-          />
-          <Button type="button" variant="ghost" size="sm" onClick={addUrl}>
-            Add
-          </Button>
-        </div>
       </div>
 
       {error && <ErrorNote message={error} />}

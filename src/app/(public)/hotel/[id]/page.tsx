@@ -201,6 +201,7 @@ function RoomDetail() {
                   sizes="(max-width: 1024px) 100vw, 640px"
                   className="object-cover"
                   priority
+                  unoptimized
                 />
               ) : (
                 <div className="woven h-full w-full" aria-hidden />
@@ -228,6 +229,7 @@ function RoomDetail() {
                         fill
                         sizes="80px"
                         className="object-cover"
+                        unoptimized
                       />
                     </button>
                   </li>

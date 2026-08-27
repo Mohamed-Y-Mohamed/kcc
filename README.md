@@ -4,7 +4,7 @@ The website for KCC on Argo Street, Golol, Somalia. Somali coffee, a kitchen,
 and hotel rooms guests can book online.
 
 Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Firebase
-(Auth, Firestore, Storage) · deployed on Netlify.
+(Auth, Firestore) · deployed on Netlify.
 
 ---
 
@@ -20,9 +20,10 @@ Open http://localhost:3000.
 
 ### Environment
 
-`.env` holds the Firebase web configuration. These values are **not secrets** —
+`.env` holds the Firebase web configuration. `STORAGE_BUCKET` is unused —
+Cloud Storage is not enabled — but the SDK expects the key, so leave it set. These values are **not secrets** —
 they ship in the browser bundle by design, and every Firebase web app works this
-way. What actually protects the data is `firestore.rules` and `storage.rules`.
+way. What actually protects the data is `firestore.rules`.
 
 ```
 NEXT_PUBLIC_FIREBASE_API_KEY=
@@ -64,7 +65,7 @@ shut or wide open, depending on the mode you picked in step 2.
 npm install -g firebase-tools
 firebase login
 firebase use --add          # pick your project
-firebase deploy --only firestore:rules,firestore:indexes,storage
+firebase deploy --only firestore:rules,firestore:indexes
 ```
 
 ### 4. Sign in as the owner
@@ -82,11 +83,14 @@ Then just go to `/signup` and create an account with that email — the owner ro
 is applied automatically on sign-in and re-asserted every time, so it cannot be
 edited away by anyone. Everyone else gets a role from the dashboard.
 
-### Optional: Firebase Storage
+### Images
 
-Only needed to upload photos from the dashboard. Firebase console → **Storage**
-→ **Get started**. If you skip it, image *upload* fails with a clear message and
-you can still paste image URLs, which always works.
+**Cloud Storage is not used, and does not need enabling.** Room and menu photos
+are referenced by URL — paste a link to wherever the picture already lives. One
+less Firebase product to enable, secure and pay for.
+
+Those `<Image>` elements pass `unoptimized`, so a link to any host works without
+maintaining an allowlist in `next.config.ts`.
 
 ---
 

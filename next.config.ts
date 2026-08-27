@@ -7,7 +7,7 @@ import type { NextConfig } from "next";
  * `Content-Security-Policy` to enforce it.
  *
  * The allowances below are the ones this app genuinely needs: Firebase Auth and
- * Firestore over XHR/WebSocket, images from Storage, and the Google Maps embed.
+ * Firestore over XHR/WebSocket, linked images, and the Google Maps embed.
  */
 const CSP = [
   "default-src 'self'",
@@ -22,7 +22,9 @@ const CSP = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com https://*.supabase.co https://images.unsplash.com https://*.googleusercontent.com",
+  // Staff paste image links from wherever their photos live, so any https host
+  // is allowed here. Images are a low-risk source compared with scripts.
+  "img-src 'self' data: blob: https:",
   "media-src 'self'",
   "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net",
   "frame-src https://www.google.com https://maps.google.com",
@@ -44,17 +46,11 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      // Admin-uploaded photos for menu items and rooms.
-      { protocol: "https", hostname: "firebasestorage.googleapis.com" },
-      { protocol: "https", hostname: "storage.googleapis.com" },
-      // Where the imported foodItems photos actually live.
-      { protocol: "https", hostname: "**.supabase.co" },
-      // Placeholder photography until the client supplies their own.
-      { protocol: "https", hostname: "images.unsplash.com" },
-    ],
-  },
+  // No `images.remotePatterns` here on purpose. Room and menu photos are links
+  // typed in by staff and can point at any host, so those <Image> elements pass
+  // `unoptimized` and skip Next's optimiser entirely. Maintaining an allowlist
+  // of every host someone might use would just be a source of broken pictures.
+  // The only optimised image is the local logo.
 
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];

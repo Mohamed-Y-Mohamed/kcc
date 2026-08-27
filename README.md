@@ -346,6 +346,12 @@ script, so reloads do not flash.
   presses play, since most customers are on mobile data. Re-encoding it smaller
   is still worthwhile.
 - **No unit tests.** Only the build, the linter and the smoke test.
+- **Two moderate/high advisories remain in `npm audit`**, both in the `postcss`
+  version Next.js depends on: an XSS in CSS stringify output, and a file read via
+  an attacker-controlled `sourceMappingURL`. Both are build-time issues that need
+  attacker-controlled CSS, and this project's CSS is its own. `npm audit fix
+  --force` "resolves" them by moving Next.js to a preview build, which is worse.
+  They clear when Next.js bumps its own dependency.
 
 ---
 

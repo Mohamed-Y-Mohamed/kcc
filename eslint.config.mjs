@@ -10,6 +10,11 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // `next lint` used to supply these ignores; running the ESLint CLI directly
+  // means declaring them here. `next lint` is removed in Next.js 16.
+  {
+    ignores: [".next/**", "out/**", "build/**", "node_modules/**", "next-env.d.ts"],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 

@@ -14,6 +14,7 @@ const CSP = [
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
+  "manifest-src 'self'",
   "frame-ancestors 'none'",
   // Next.js ships an inline bootstrap and this app sets the theme class before
   // paint, so a nonce-based policy needs middleware — worth doing before you

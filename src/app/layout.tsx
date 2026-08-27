@@ -34,8 +34,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  // A browser tab shows roughly 20 characters, so the default stays short
+  // enough to read there while the full name lives in Open Graph.
   title: {
-    default: `${SITE.fullName} — Golol, Somalia`,
+    default: "KCC — Coffee & Restaurant",
     template: `%s · ${SITE.name}`,
   },
   description:
@@ -49,14 +51,30 @@ export const metadata: Metadata = {
     "bariis iskukaris",
   ],
   applicationName: SITE.fullName,
+  // Full coverage: .ico is what browsers fetch from the root without any tag
+  // (and what Windows shortcuts and feed readers use), the PNGs cover modern
+  // browsers at each density, apple-touch-icon covers iOS home screen, and the
+  // manifest covers Android install.
+  manifest: "/site.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
+    shortcut: ["/favicon.ico"],
+  },
+  appleWebApp: {
+    title: "KCC",
+    capable: true,
+    statusBarStyle: "black-translucent",
   },
   openGraph: {
     title: `${SITE.fullName} — Golol, Somalia`,
@@ -71,9 +89,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Never block pinch-zoom — capping it is an accessibility failure.
+  maximumScale: 5,
+  viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f1e6" },
-    { media: "(prefers-color-scheme: dark)", color: "#17110c" },
+    { media: "(prefers-color-scheme: light)", color: "#faf6f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#1c0b07" },
   ],
 };
 

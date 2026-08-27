@@ -246,7 +246,7 @@ function MenuPage() {
           aria-label="Filter by section"
           className="h-10 rounded-[2px] border border-line bg-surface-raised px-3 text-sm text-ink"
         >
-          <option value="">All sections</option>
+          <option value="">Qaybaha oo dhan · All sections</option>
           {sections.map((key) => (
             <option key={key} value={key}>
               {sectionLabel(key).so} · {sectionLabel(key).en}
@@ -260,7 +260,7 @@ function MenuPage() {
           aria-label="Filter by category"
           className="h-10 rounded-[2px] border border-line bg-surface-raised px-3 text-sm text-ink"
         >
-          <option value="">All categories</option>
+          <option value="">Noocyada oo dhan · All categories</option>
           {categories.map((key) => (
             <option key={key} value={key}>
               {categoryLabel(key).en}
@@ -298,14 +298,14 @@ function MenuPage() {
         <TableWrap>
           <thead>
             <tr>
-              <Th className="w-16">Photo</Th>
-              <Th>Dish</Th>
-              <Th>Section</Th>
-              <Th>Category</Th>
-              <Th>Price</Th>
-              <Th>Tags</Th>
-              <Th>Status</Th>
-              <Th className="text-right">Actions</Th>
+              <Th so="Sawir" className="w-16">Photo</Th>
+              <Th so="Cunto">Dish</Th>
+              <Th so="Qaybta">Section</Th>
+              <Th so="Nooca">Category</Th>
+              <Th so="Qiimo">Price</Th>
+              <Th so="Calaamado">Tags</Th>
+              <Th so="Xaalad">Status</Th>
+              <Th so="Ficil" className="text-right">Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -418,10 +418,10 @@ function MenuPage() {
         footer={
           <>
             <Button variant="ghost" onClick={closeForm}>
-              Cancel
+              Ka noqo · Cancel
             </Button>
             <Button type="submit" form="menu-form" loading={saving}>
-              {editing ? "Save changes" : "Add to menu"}
+              {editing ? "Kaydi · Save changes" : "Ku dar · Add to menu"}
             </Button>
           </>
         }
@@ -498,11 +498,11 @@ function MenuPage() {
           </div>
 
           <ImageField
-            label="Photo"
+            label="Photo — optional · Sawir (ikhtiyaari)"
             value={form.image}
             onChange={(url) => set("image", url)}
             folder="menu"
-            hint="Paste a link or upload. A woven pattern shows when there's no photo."
+            hint="Leave it empty and the menu just shows the name and price, which is how it reads now. Add photos whenever you have them."
           />
 
           <fieldset className="flex flex-col gap-3 border-t border-line pt-5">

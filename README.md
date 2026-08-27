@@ -121,12 +121,12 @@ Staff sign in at **`/admin/login`**. Customers use `/login`.
 
 | Page | What it does |
 |---|---|
-| **Overview** | Pending bookings, upcoming stays, revenue, unread messages, and the one-click **Load starter content** button |
+| **Overview** | Pending bookings, upcoming stays, revenue, unread messages, and the one-click **Add starter rooms** button |
 | **Bookings** | Every booking. Filter by upcoming/today/past and by status, confirm or cancel on a guest's behalf, add notes, call or email them |
 | **Rooms** | Add, edit and delete rooms — both languages, location in the building, price, capacity, beds, check-in/check-out times, several photos with a chosen cover, and how many of each room exist. Hide a room to take it off the site without losing its history |
-| **Food & drink** | Add, edit and delete dishes and categories, mark things sold out, upload a photo |
+| **Food & drink** | Add, edit and delete dishes, filter by section and category, search, mark things sold out. Photos are optional |
 | **Users** | Search by email, edit details, set roles |
-| **Messages** | Enquiries from the contact form |
+| **Tables & messages** | Table bookings and enquiries from the contact form, grouped Today / Upcoming / Previous, filterable by New / Read / Archived, searchable by name, email, phone or message text |
 
 **Hotel page empty?** Rooms are the one thing that has no data yet. Hit **Add
 starter rooms** on the Overview and you get single, double and family types to
@@ -139,7 +139,7 @@ migrating them:
 
 | Collection | Docs | Notes |
 |---|---|---|
-| `foodItems` | 131 | The menu. Keeps its imported shape — `name` is a `{ en, so }` map, timestamps are ISO strings, images point at Supabase |
+| `foodItems` | 131 | The menu. Keeps its imported shape — `name` is a `{ en, so }` map, timestamps are ISO strings |
 | `users` | — | Roles live here. Written by this app |
 | `user` | 1 | Legacy, from the previous app. Read-only, nothing writes to it |
 | `rooms`, `bookings`, `dateBlocks`, `messages` | — | New, created by this app |
@@ -151,6 +151,12 @@ everything above it works with a tidy `MenuItem` type. Two things worth knowing:
   sides, drinks. **`category`** is the sub-type within it (`lunch-food`,
   `hot-tea`, `juice`…). **`type`** is `"Normal"` on all 131 records — the import
   never populated it, so nothing reads it.
+- **The imported photos are gone.** They lived on a Supabase project whose
+  hostname no longer resolves, so all 131 rendered as broken images. They have
+  been cleared, with each original URL preserved in a `legacyImage` field — the
+  filenames name the dish, which helps when re-shooting. The menu reads fine
+  without photos, and `scripts/clear-broken-images.mjs` will do the same job
+  again if another host ever disappears.
 - **`name.so` is empty on most imported records.** The site leads with Somali,
   so it falls back to the English name and drops the translation line rather
   than rendering blank. Admin → Food & drink shows a running count of how many
@@ -195,8 +201,11 @@ npm run build         # type-check + production build
 
 ### Smoke test
 
-A Playwright script that loads every public route in light, dark and mobile, and
-fails on a non-200, an empty render, a page error, or horizontal overflow.
+A Playwright script that loads every public route across eight viewports —
+320px phone through to 1920px desktop, in light and dark — and fails on a
+non-200, an empty render, the route's expected content never appearing, a
+JavaScript error, a failed script or stylesheet request, or any horizontal
+overflow. 64 checks in total.
 
 ```bash
 npm run test:smoke:setup     # first time only
@@ -207,8 +216,23 @@ npm run test:smoke           # in another terminal
 Point it elsewhere with `SMOKE_BASE_URL`, and save screenshots with
 `SMOKE_SHOT_DIR=/some/dir`.
 
-It waits on `domcontentloaded`, not `networkidle` — Firestore holds a websocket
-open for the life of the page, so `networkidle` never fires here.
+Two things it is deliberate about:
+
+- It waits on `domcontentloaded`, never `networkidle` — Firestore holds a
+  websocket open for the life of the page, so `networkidle` never fires here.
+- It waits for a **named selector per route**, not a fixed sleep. An earlier
+  version slept 1.2s and happily passed a page whose JS and CSS were all 404ing,
+  because "some text rendered" was the only bar it had to clear.
+
+### Browser tab and app icons
+
+`favicon.ico` (16/32/48/64 in one file), PNGs at 16 through 512,
+`apple-touch-icon.png` for iOS home screen, a maskable icon with safe-zone
+padding for Android's circular crop, and `site.webmanifest`. Regenerate them all
+from `public/logo.jpeg` with `scripts/make-icons.py` if the logo ever changes.
+
+The small sizes are cropped in slightly toward the cup — the full logo ring
+turns to mush at 16px.
 
 ---
 

@@ -7,7 +7,10 @@ import { uploadImage } from "@/lib/upload";
 import { Field } from "./Field";
 import { Button } from "./Button";
 
-/** Single image: paste a URL or upload a file. */
+/**
+ * Single image: paste a URL or upload a file. Always optional — the menu reads
+ * perfectly well without photos, and it falls back to the woven placeholder.
+ */
 export function ImageField({
   label,
   value,

@@ -6,6 +6,7 @@ import { listBookings, setBookingStatus, updateBookingNotes } from "@/lib/bookin
 import { formatDate, formatPrice, formatTimestamp, todayISO } from "@/lib/format";
 import { BOOKING_STATUSES, type Booking, type BookingStatus } from "@/lib/types";
 import { AdminHeader, SearchInput, TableWrap, Td, Th, Toolbar } from "@/components/admin/Shell";
+import { Bi } from "@/components/ui/Bi";
 import { RequireCapability } from "@/components/admin/RequireCapability";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Field";
@@ -16,6 +17,20 @@ import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 
 type Range = "upcoming" | "today" | "past" | "all";
+
+const RANGES: { id: Range; so: string; en: string }[] = [
+  { id: "upcoming", so: "Soo socda", en: "Upcoming" },
+  { id: "today", so: "Maanta", en: "Staying today" },
+  { id: "past", so: "Hore", en: "Past" },
+  { id: "all", so: "Dhammaan", en: "All" },
+];
+
+const STATUS_SO: Record<string, string> = {
+  pending: "Sugaya",
+  confirmed: "La xaqiijiyay",
+  cancelled: "La joojiyay",
+  completed: "La dhammeeyay",
+};
 
 export default function AdminBookingsPage() {
   return (
@@ -134,22 +149,23 @@ function BookingsPage() {
           label="Search bookings"
           value={search}
           onChange={setSearch}
-          placeholder="Code, name, email or phone…"
+          placeholder="Raadi lambar, magac ama iimayl · Search…"
         />
 
         <div className="flex gap-1 rounded-[2px] border border-line p-0.5">
-          {(["upcoming", "today", "past", "all"] as Range[]).map((r) => (
+          {RANGES.map((r) => (
             <button
-              key={r}
-              onClick={() => setRange(r)}
+              key={r.id}
+              onClick={() => setRange(r.id)}
+              aria-pressed={range === r.id}
               className={cn(
-                "rounded-[2px] px-3 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] transition-colors",
-                range === r
+                "rounded-[2px] px-3 py-1.5 text-left transition-colors",
+                range === r.id
                   ? "bg-accent-solid text-accent-ink"
                   : "text-ink-subtle hover:text-ink"
               )}
             >
-              {r}
+              <Bi so={r.so} en={r.en} size="sm" />
             </button>
           ))}
         </div>
@@ -160,10 +176,10 @@ function BookingsPage() {
           aria-label="Filter by status"
           className="h-10 rounded-[2px] border border-line bg-surface-raised px-3 text-sm text-ink"
         >
-          <option value="">Any status</option>
+          <option value="">Xaalad kasta · Any status</option>
           {BOOKING_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s[0].toUpperCase() + s.slice(1)}
+              {STATUS_SO[s]} · {s[0].toUpperCase() + s.slice(1)}
             </option>
           ))}
         </select>
@@ -195,14 +211,16 @@ function BookingsPage() {
         <TableWrap>
           <thead>
             <tr>
-              <Th>Ref</Th>
-              <Th>Guest</Th>
-              <Th>Room</Th>
-              <Th>Dates</Th>
-              <Th>Nights</Th>
-              <Th>Total</Th>
-              <Th>Status</Th>
-              <Th className="text-right">Actions</Th>
+              <Th so="Lambar">Ref</Th>
+              <Th so="Marti">Guest</Th>
+              <Th so="Qol">Room</Th>
+              <Th so="Taariikh">Dates</Th>
+              <Th so="Habeen">Nights</Th>
+              <Th so="Wadarta">Total</Th>
+              <Th so="Xaalad">Status</Th>
+              <Th so="Ficil" className="text-right">
+                Actions
+              </Th>
             </tr>
           </thead>
           <tbody>
@@ -235,7 +253,7 @@ function BookingsPage() {
                         size="sm"
                         onClick={() => changeStatus(b, "confirmed")}
                       >
-                        Confirm
+                        Xaqiiji · Confirm
                       </Button>
                     )}
                     <Button
@@ -246,7 +264,7 @@ function BookingsPage() {
                         setNotes(b.notes);
                       }}
                     >
-                      Open
+                      Fur · Open
                     </Button>
                   </div>
                 </Td>
@@ -266,7 +284,7 @@ function BookingsPage() {
           open && (
             <>
               <Button variant="ghost" onClick={() => setOpen(null)}>
-                Close
+                Xir · Close
               </Button>
               {open.status !== "cancelled" && (
                 <Button
@@ -274,17 +292,17 @@ function BookingsPage() {
                   loading={busy}
                   onClick={() => changeStatus(open, "cancelled")}
                 >
-                  Cancel booking
+                  Jooji · Cancel booking
                 </Button>
               )}
               {open.status === "pending" && (
                 <Button loading={busy} onClick={() => changeStatus(open, "confirmed")}>
-                  Confirm
+                  Xaqiiji · Confirm
                 </Button>
               )}
               {open.status === "confirmed" && (
                 <Button loading={busy} onClick={() => changeStatus(open, "completed")}>
-                  Mark completed
+                  Dhammee · Mark completed
                 </Button>
               )}
             </>
@@ -302,25 +320,25 @@ function BookingsPage() {
 
             <dl className="grid grid-cols-2 gap-4 border-y border-line py-5 text-sm">
               <div>
-                <dt className="translation">Guest</dt>
+                <dt className="translation">Marti · Guest</dt>
                 <dd className="mt-0.5 text-ink">{open.guestName}</dd>
               </div>
               <div>
-                <dt className="translation">Room</dt>
+                <dt className="translation">Qol · Room</dt>
                 <dd className="mt-0.5 text-ink">{open.roomName}</dd>
               </div>
               <div>
-                <dt className="translation">Check in</dt>
+                <dt className="translation">Gelitaan · Check in</dt>
                 <dd className="mt-0.5 tnum text-ink">{formatDate(open.checkIn)}</dd>
               </div>
               <div>
-                <dt className="translation">Check out</dt>
+                <dt className="translation">Bixitaan · Check out</dt>
                 <dd className="mt-0.5 tnum text-ink">
                   {formatDate(open.checkOut)}
                 </dd>
               </div>
               <div>
-                <dt className="translation">Guests</dt>
+                <dt className="translation">Dad · Guests</dt>
                 <dd className="mt-0.5 tnum text-ink">{open.guests}</dd>
               </div>
               <div>
@@ -353,6 +371,7 @@ function BookingsPage() {
             <div className="flex flex-col gap-2">
               <Textarea
                 label="Notes"
+                labelSo="Qoraal"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
@@ -365,7 +384,7 @@ function BookingsPage() {
                 loading={busy}
                 onClick={saveNotes}
               >
-                Save note
+                Kaydi · Save note
               </Button>
             </div>
           </div>

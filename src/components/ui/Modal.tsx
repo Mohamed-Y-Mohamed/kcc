@@ -143,7 +143,7 @@ export function ConfirmDialog({
   onConfirm,
   title,
   body,
-  confirmLabel = "Delete",
+  confirmLabel = "Tirtir · Delete",
   loading = false,
 }: {
   open: boolean;
@@ -163,7 +163,7 @@ export function ConfirmDialog({
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            Ka noqo · Cancel
           </Button>
           <Button variant="danger" onClick={onConfirm} loading={loading}>
             {confirmLabel}

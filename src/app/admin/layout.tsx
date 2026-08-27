@@ -72,8 +72,8 @@ const NAV: {
   },
   {
     href: "/admin/messages",
-    label: "Messages",
-    labelSo: "Fariimo",
+    label: "Tables & messages",
+    labelSo: "Miisas & Fariimo",
     icon: Mail,
     capability: "manageMessages",
   },

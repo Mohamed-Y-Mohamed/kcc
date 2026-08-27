@@ -162,7 +162,7 @@ function UsersPage() {
             value={search}
             aria-label="Search users by email, name or phone"
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by email address…"
+            placeholder="Raadi iimayl ama magac · Search by email…"
             className="h-11 w-full rounded-[2px] border border-line bg-surface-raised pl-9 pr-3 text-sm text-ink placeholder:text-ink-subtle"
           />
         </div>
@@ -200,12 +200,12 @@ function UsersPage() {
         <TableWrap>
           <thead>
             <tr>
-              <Th>Name</Th>
-              <Th>Email</Th>
-              <Th>Phone</Th>
-              <Th>Joined</Th>
-              <Th>Role</Th>
-              <Th className="text-right">Actions</Th>
+              <Th so="Magac">Name</Th>
+              <Th so="Iimayl">Email</Th>
+              <Th so="Telefoon">Phone</Th>
+              <Th so="Ku biiray">Joined</Th>
+              <Th so="Doorka">Role</Th>
+              <Th so="Ficil" className="text-right">Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -254,7 +254,7 @@ function UsersPage() {
                         onClick={() => openEdit(u)}
                       >
                         <Pencil className="h-3.5 w-3.5" />
-                        Edit
+                        Wax ka beddel · Edit
                       </Button>
                     </div>
                   </Td>
@@ -274,10 +274,10 @@ function UsersPage() {
         footer={
           <>
             <Button variant="ghost" onClick={() => setEditing(null)}>
-              Cancel
+              Ka noqo · Cancel
             </Button>
             <Button type="submit" form="user-form" loading={saving}>
-              Save changes
+              Kaydi · Save changes
             </Button>
           </>
         }
@@ -285,6 +285,7 @@ function UsersPage() {
         <form id="user-form" onSubmit={save} className="flex flex-col gap-5">
           <Input
             label="Full name"
+            labelSo="Magaca oo buuxa"
             value={draft.displayName}
             onChange={(e) =>
               setDraft((d) => ({ ...d, displayName: e.target.value }))
@@ -292,6 +293,7 @@ function UsersPage() {
           />
           <Input
             label="Phone"
+            labelSo="Telefoon"
             type="tel"
             value={draft.phone}
             onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))}
@@ -299,6 +301,7 @@ function UsersPage() {
 
           <Select
             label="Role"
+            labelSo="Doorka"
             value={draft.role}
             onChange={(e) =>
               setDraft((d) => ({ ...d, role: e.target.value as Role }))

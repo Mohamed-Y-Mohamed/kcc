@@ -18,31 +18,36 @@ export const ROLES: Role[] = ["owner", "admin", "manager", "staff", "user"];
 
 export const ROLE_META: Record<
   Role,
-  { label: string; labelSo: string; summary: string }
+  { label: string; labelSo: string; summary: string; summarySo: string }
 > = {
   owner: {
     label: "Owner",
     labelSo: "Milkiilaha",
+    summarySo: "Xukun buuxa. Kaliya isaga ayaa magacaabi kara maamulayaasha.",
     summary: "Full control, and the only one who can appoint admins and managers.",
   },
   admin: {
     label: "Admin",
     labelSo: "Maamule Sare",
+    summarySo: "Qolal, menu iyo qabsasho. Wuxuu magacaabi karaa shaqaale.",
     summary: "Rooms, menu and bookings. Can appoint staff.",
   },
   manager: {
     label: "Manager",
     labelSo: "Maamule",
+    summarySo: "Qolal, menu iyo qabsasho. Shaqaale wuu magacaabi karaa, maamule maya.",
     summary: "Rooms, menu and bookings. Can appoint staff, but not managers.",
   },
   staff: {
     label: "Staff",
     labelSo: "Shaqaale",
+    summarySo: "Qabsasho iyo fariimo oo keliya — wax ka beddel oo jooji martida.",
     summary: "Bookings and messages only — edit and cancel for guests.",
   },
   user: {
     label: "Customer",
     labelSo: "Macmiil",
+    summarySo: "Akoon caadi ah. Qol buu qabsan karaa, kiisiisana wuu arki karaa.",
     summary: "An ordinary account. Books rooms, sees their own bookings.",
   },
 };

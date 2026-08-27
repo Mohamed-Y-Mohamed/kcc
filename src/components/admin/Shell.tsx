@@ -86,11 +86,15 @@ export function TableWrap({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** `so` adds the Somali term alongside the English one, which is how every
+ *  label on this site reads. */
 export function Th({
   children,
+  so,
   className,
 }: {
   children: React.ReactNode;
+  so?: string;
   className?: string;
 }) {
   return (
@@ -102,7 +106,14 @@ export function Th({
         className
       )}
     >
-      {children}
+      {so ? (
+        <>
+          <span className="text-ink-muted">{so}</span>
+          <span className="opacity-60"> · {children}</span>
+        </>
+      ) : (
+        children
+      )}
     </th>
   );
 }

@@ -1,22 +1,46 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { Archive, Inbox, Mail, MailOpen, Phone, Trash2 } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  deleteMessage,
-  listMessages,
-  setMessageStatus,
-} from "@/lib/messages";
-import { formatDate, formatTimestamp } from "@/lib/format";
+  Archive,
+  CalendarDays,
+  Clock,
+  Inbox,
+  Mail,
+  MailOpen,
+  Phone,
+  Search,
+  Trash2,
+  Users as UsersIcon,
+} from "lucide-react";
+import { deleteMessage, listMessages, setMessageStatus } from "@/lib/messages";
+import { formatDate, formatTimestamp, todayISO } from "@/lib/format";
 import type { ContactMessage, MessageStatus } from "@/lib/types";
-import { AdminHeader, SearchInput, Toolbar } from "@/components/admin/Shell";
+import { AdminHeader, Toolbar } from "@/components/admin/Shell";
 import { RequireCapability } from "@/components/admin/RequireCapability";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { MessageStatusBadge } from "@/components/ui/Badge";
+import { Bi } from "@/components/ui/Bi";
 import { EmptyState, ErrorNote, LoadingBlock } from "@/components/ui/Feedback";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
+
+type When = "today" | "upcoming" | "previous" | "all";
+
+const WHEN_TABS: { id: When; so: string; en: string }[] = [
+  { id: "today", so: "Maanta", en: "Today" },
+  { id: "upcoming", so: "Soo socda", en: "Upcoming" },
+  { id: "previous", so: "Hore", en: "Previous" },
+  { id: "all", so: "Dhammaan", en: "All" },
+];
+
+const STATUS_TABS: { id: MessageStatus | ""; so: string; en: string }[] = [
+  { id: "", so: "Dhammaan", en: "All" },
+  { id: "new", so: "Cusub", en: "New" },
+  { id: "read", so: "La akhriyay", en: "Read" },
+  { id: "archived", so: "La kaydiyay", en: "Archived" },
+];
 
 export default function AdminMessagesPage() {
   return (
@@ -32,7 +56,8 @@ function MessagesPage() {
   const [messages, setMessages] = useState<ContactMessage[] | null>(null);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<MessageStatus | "">("");
+  const [when, setWhen] = useState<When>("today");
+  const [status, setStatus] = useState<MessageStatus | "">("");
   const [deleting, setDeleting] = useState<ContactMessage | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -51,9 +76,9 @@ function MessagesPage() {
     load();
   }, [load]);
 
-  async function mark(message: ContactMessage, status: MessageStatus) {
+  async function mark(message: ContactMessage, next: MessageStatus) {
     try {
-      await setMessageStatus(message.id, status);
+      await setMessageStatus(message.id, next);
       await load();
     } catch {
       toast("Couldn't update that message.", "error");
@@ -75,64 +100,126 @@ function MessagesPage() {
     }
   }
 
-  const filtered = (messages ?? []).filter((m) => {
-    if (filter && m.status !== filter) return false;
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      m.name.toLowerCase().includes(q) ||
-      m.email.toLowerCase().includes(q) ||
-      m.message.toLowerCase().includes(q)
-    );
-  });
+  const today = todayISO();
 
-  const unread = (messages ?? []).filter((m) => m.status === "new").length;
+  const counts = useMemo(() => {
+    const all = messages ?? [];
+    return {
+      today: all.filter((m) => m.date === today).length,
+      upcoming: all.filter((m) => m.date && m.date > today).length,
+      previous: all.filter((m) => !m.date || m.date < today).length,
+      all: all.length,
+      unread: all.filter((m) => m.status === "new").length,
+    };
+  }, [messages, today]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return (messages ?? [])
+      .filter((m) => {
+        if (status && m.status !== status) return false;
+
+        if (when === "today" && m.date !== today) return false;
+        if (when === "upcoming" && !(m.date && m.date > today)) return false;
+        if (when === "previous" && !(!m.date || m.date < today)) return false;
+
+        if (!q) return true;
+        return (
+          m.name.toLowerCase().includes(q) ||
+          m.email.toLowerCase().includes(q) ||
+          m.phone.toLowerCase().includes(q) ||
+          m.message.toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => {
+        // Soonest first when looking forward, most recent first when looking back.
+        if (when === "previous") return (b.date || "").localeCompare(a.date || "");
+        return (a.date || "9999").localeCompare(b.date || "9999");
+      });
+  }, [messages, search, status, when, today]);
 
   return (
     <div className="flex flex-col gap-2">
       <AdminHeader
-        title="Messages"
-        titleSo="Fariimaha"
+        title="Table bookings & messages"
+        titleSo="Miisas & Fariimo"
         descriptionSo={
-          unread
-            ? `${unread} fariin oo aan la akhrin.`
-            : "Wax fariin cusub ah ma jiraan."
+          counts.unread
+            ? `${counts.unread} fariin oo aan la akhrin · ${counts.today} miis oo maanta ah.`
+            : `${counts.today} miis oo maanta ah.`
         }
-        description={
-          unread
-            ? `${unread} unread ${unread === 1 ? "enquiry" : "enquiries"} from the contact form.`
-            : "Table bookings and enquiries from the contact form."
-        }
+        description="Everything sent from the contact form — table reservations and general enquiries."
       />
 
-      <Toolbar>
-        <SearchInput
-          label="Search messages"
-          value={search}
-          onChange={setSearch}
-          placeholder="Search name, email or text…"
-        />
-        <div className="flex gap-1 rounded-[2px] border border-line p-0.5">
-          {([
-            ["", "All"],
-            ["new", "New"],
-            ["read", "Read"],
-            ["archived", "Archived"],
-          ] as const).map(([value, label]) => (
+      {/* When */}
+      <div
+        role="tablist"
+        aria-label="Filter by date"
+        className="mt-6 flex gap-1 overflow-x-auto border-b border-line"
+      >
+        {WHEN_TABS.map((tab) => {
+          const active = when === tab.id;
+          return (
             <button
-              key={label}
-              onClick={() => setFilter(value)}
+              key={tab.id}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setWhen(tab.id)}
               className={cn(
-                "rounded-[2px] px-3 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] transition-colors",
-                filter === value
+                "-mb-px flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 transition-colors",
+                active
+                  ? "border-accent-solid text-ink"
+                  : "border-transparent text-ink-subtle hover:text-ink"
+              )}
+            >
+              <Bi so={tab.so} en={tab.en} size="sm" />
+              <span className="tnum rounded-[2px] bg-surface-sunken px-1.5 text-[0.65rem] text-ink-muted">
+                {counts[tab.id]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <Toolbar>
+        <div className="relative w-full sm:w-80">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={search}
+            aria-label="Search by name, email, phone or message"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Raadi magac, iimayl ama qoraal · Search…"
+            className="h-10 w-full rounded-[2px] border border-line bg-surface-raised pl-9 pr-3 text-sm text-ink placeholder:text-ink-subtle"
+          />
+        </div>
+
+        <div className="flex gap-1 rounded-[2px] border border-line p-0.5">
+          {STATUS_TABS.map((tab) => (
+            <button
+              key={tab.id || "all"}
+              onClick={() => setStatus(tab.id)}
+              aria-pressed={status === tab.id}
+              className={cn(
+                "rounded-[2px] px-3 py-1.5 text-left transition-colors",
+                status === tab.id
                   ? "bg-accent-solid text-accent-ink"
                   : "text-ink-subtle hover:text-ink"
               )}
             >
-              {label}
+              <Bi so={tab.so} en={tab.en} size="sm" />
             </button>
           ))}
         </div>
+
+        {messages && (
+          <span className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-ink-subtle">
+            {filtered.length} / {messages.length}
+          </span>
+        )}
       </Toolbar>
 
       {error && <ErrorNote message={error} />}
@@ -142,11 +229,15 @@ function MessagesPage() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Inbox}
-          title={messages.length === 0 ? "Inbox empty" : "Nothing in this view"}
+          title={
+            messages.length === 0
+              ? "Wax fariin ah ma jiraan · Inbox empty"
+              : "Waxba kuma jiraan · Nothing here"
+          }
           description={
             messages.length === 0
-              ? "Enquiries sent from the contact page arrive here."
-              : "Try clearing the filter."
+              ? "Table bookings and enquiries from the contact page arrive here."
+              : "Try another date range, or clear the search."
           }
         />
       ) : (
@@ -162,19 +253,42 @@ function MessagesPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="font-display text-xl text-ink">{m.name}</h2>
-                  <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-subtle">
-                    <span>{formatTimestamp(m.createdAt)}</span>
-                    {m.occasion && <span>· {m.occasion}</span>}
-                    {m.partySize > 0 && <span>· {m.partySize} people</span>}
-                    {m.date && (
-                      <span>
-                        · {formatDate(m.date)} {m.time}
-                      </span>
-                    )}
-                  </p>
+                  {m.occasion && (
+                    <p className="mt-0.5 text-sm text-ink-muted">{m.occasion}</p>
+                  )}
                 </div>
                 <MessageStatusBadge status={m.status} />
               </div>
+
+              {/* The reservation itself */}
+              <dl className="mt-4 grid grid-cols-2 gap-4 border-y border-line py-4 text-sm sm:grid-cols-4">
+                <div>
+                  <dt className="translation flex items-center gap-1.5">
+                    <CalendarDays className="h-3 w-3" /> Taariikh · Date
+                  </dt>
+                  <dd className="mt-1 text-ink">
+                    {m.date ? formatDate(m.date) : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="translation flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" /> Saacad · Time
+                  </dt>
+                  <dd className="tnum mt-1 text-ink">{m.time || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="translation flex items-center gap-1.5">
+                    <UsersIcon className="h-3 w-3" /> Dad · People
+                  </dt>
+                  <dd className="tnum mt-1 text-ink">{m.partySize || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="translation">La diray · Sent</dt>
+                  <dd className="mt-1 text-xs text-ink-muted">
+                    {formatTimestamp(m.createdAt)}
+                  </dd>
+                </div>
+              </dl>
 
               {m.message && (
                 <p className="mt-4 whitespace-pre-line border-l-2 border-line pl-4 text-sm leading-relaxed text-ink-muted">
@@ -200,22 +314,22 @@ function MessagesPage() {
                   </a>
                 )}
 
-                <div className="ml-auto flex gap-2">
+                <div className="ml-auto flex flex-wrap gap-2">
                   {m.status === "new" && (
                     <Button size="sm" variant="secondary" onClick={() => mark(m, "read")}>
                       <MailOpen className="h-3.5 w-3.5" />
-                      Mark read
+                      La akhriyay · Mark read
                     </Button>
                   )}
                   {m.status !== "archived" && (
                     <Button size="sm" variant="ghost" onClick={() => mark(m, "archived")}>
                       <Archive className="h-3.5 w-3.5" />
-                      Archive
+                      Kaydi · Archive
                     </Button>
                   )}
                   <Button size="sm" variant="danger" onClick={() => setDeleting(m)}>
                     <Trash2 className="h-3.5 w-3.5" />
-                    Delete
+                    Tirtir · Delete
                   </Button>
                 </div>
               </div>
@@ -229,7 +343,8 @@ function MessagesPage() {
         onClose={() => setDeleting(null)}
         onConfirm={confirmDelete}
         loading={busy}
-        title="Delete this message?"
+        confirmLabel="Tirtir · Delete"
+        title="Tirtir fariintan? · Delete this message?"
         body={`The enquiry from ${deleting?.name ?? "this person"} will be removed permanently. Archive it instead if you might need it later.`}
       />
     </div>

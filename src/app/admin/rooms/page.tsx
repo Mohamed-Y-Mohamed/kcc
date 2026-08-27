@@ -202,7 +202,7 @@ function RoomsPage() {
           label="Search rooms"
           value={search}
           onChange={setSearch}
-          placeholder="Search by name or location…"
+          placeholder="Raadi magac ama goob · Search…"
         />
         {rooms && (
           <span className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-ink-subtle">
@@ -237,15 +237,15 @@ function RoomsPage() {
         <TableWrap>
           <thead>
             <tr>
-              <Th className="w-20">Photo</Th>
-              <Th>Room</Th>
-              <Th>Location</Th>
-              <Th>Price</Th>
-              <Th>Sleeps</Th>
-              <Th>Qty</Th>
-              <Th>Check in / out</Th>
-              <Th>Status</Th>
-              <Th className="text-right">Actions</Th>
+              <Th so="Sawir" className="w-20">Photo</Th>
+              <Th so="Qol">Room</Th>
+              <Th so="Goobta">Location</Th>
+              <Th so="Qiimo">Price</Th>
+              <Th so="Dad">Sleeps</Th>
+              <Th so="Tirada">Qty</Th>
+              <Th so="Gelitaan / Bixitaan">Check in / out</Th>
+              <Th so="Xaalad">Status</Th>
+              <Th so="Ficil" className="text-right">Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -344,10 +344,10 @@ function RoomsPage() {
         footer={
           <>
             <Button variant="ghost" onClick={closeForm}>
-              Cancel
+              Ka noqo · Cancel
             </Button>
             <Button type="submit" form="room-form" loading={saving}>
-              {editing ? "Save changes" : "Add room"}
+              {editing ? "Kaydi · Save changes" : "Ku dar · Add room"}
             </Button>
           </>
         }
@@ -388,6 +388,7 @@ function RoomsPage() {
 
           <Input
             label="Location in the building"
+            labelSo="Goobta dhismaha"
             value={form.location}
             onChange={(e) => set("location", e.target.value)}
             placeholder="Second floor, street side"
@@ -397,6 +398,7 @@ function RoomsPage() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <Input
               label="Price per night ($)"
+              labelSo="Qiimaha habeenkii ($)"
               type="number"
               min={0}
               step="0.5"
@@ -406,6 +408,7 @@ function RoomsPage() {
             />
             <Input
               label="Sleeps"
+              labelSo="Immisa qof"
               type="number"
               min={1}
               value={form.capacity}
@@ -414,6 +417,7 @@ function RoomsPage() {
             />
             <Input
               label="Beds"
+              labelSo="Sariiro"
               type="number"
               min={1}
               value={form.beds}
@@ -421,6 +425,7 @@ function RoomsPage() {
             />
             <Input
               label="How many rooms"
+              labelSo="Immisa qol"
               type="number"
               min={1}
               value={form.quantity}
@@ -433,12 +438,14 @@ function RoomsPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             <Input
               label="Check-in time"
+              labelSo="Saacadda gelitaanka"
               type="time"
               value={form.checkInTime}
               onChange={(e) => set("checkInTime", e.target.value)}
             />
             <Input
               label="Check-out time"
+              labelSo="Saacadda bixitaanka"
               type="time"
               value={form.checkOutTime}
               onChange={(e) => set("checkOutTime", e.target.value)}
@@ -446,7 +453,7 @@ function RoomsPage() {
           </div>
 
           <MultiImageField
-            label="Photos"
+            label="Sawirro — ikhtiyaari · Photos (optional)"
             values={form.images}
             onChange={(next) => set("images", next)}
             folder="rooms"
@@ -478,7 +485,7 @@ function RoomsPage() {
 
           <div className="border-t border-line pt-5">
             <Checkbox
-              label="Show this room to guests"
+              label="Tus martida · Show this room to guests"
               hint="Turn off to take it off the site without deleting it."
               checked={form.active}
               onChange={(on) => set("active", on)}

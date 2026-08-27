@@ -1,6 +1,53 @@
 import type { NextConfig } from "next";
 
 /**
+ * Fail the build immediately, and legibly, when Firebase config is missing.
+ *
+ * Without this the first symptom is `FirebaseError: auth/invalid-api-key`
+ * thrown from a minified chunk while prerendering /account, which tells you
+ * nothing about which variable is wrong. A single mistyped key on the host —
+ * `EXT_PUBLIC_...` instead of `NEXT_PUBLIC_...` — is enough to cause it.
+ */
+const REQUIRED_ENV = [
+  "NEXT_PUBLIC_FIREBASE_API_KEY",
+  "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  "NEXT_PUBLIC_FIREBASE_APP_ID",
+];
+
+const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]?.trim());
+
+if (missingEnv.length > 0) {
+  // Name any near-miss, since a typo'd variable is invisible in a host's UI.
+  const present = Object.keys(process.env);
+  const nearMisses = missingEnv
+    .map((key) => {
+      const suffix = key.replace(/^NEXT_PUBLIC_/, "");
+      const found = present.find(
+        (k) => k !== key && k.includes(suffix) && k.includes("FIREBASE")
+      );
+      return found ? `    ${key}  — did you mean to rename "${found}"?` : null;
+    })
+    .filter(Boolean);
+
+  const message = [
+    "",
+    "  Firebase configuration is missing. The build cannot continue.",
+    "",
+    "  Not set:",
+    ...missingEnv.map((k) => `    ${k}`),
+    ...(nearMisses.length ? ["", "  Close matches found:", ...nearMisses] : []),
+    "",
+    "  Locally:  copy .env.example to .env and fill it in.",
+    "  Netlify:  Site configuration -> Environment variables.",
+    "            Names must match exactly, including the leading NEXT_.",
+    "",
+  ].join("\n");
+
+  throw new Error(message);
+}
+
+/**
  * Content-Security-Policy is shipped in Report-Only first, which is the safe
  * rollout order: the browser reports what it *would* have blocked without
  * breaking the site. Watch the console for a week, then rename the header to

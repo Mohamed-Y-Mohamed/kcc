@@ -3,7 +3,9 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # @netlify/plugin-nextjs requires 22+; on 20 the build and the plugin run on
+  # different Node versions, which Netlify warns about.
+  NODE_VERSION = "22"
 
 # Gives Netlify proper Next.js App Router support: server components, dynamic
 # routes like /hotel/[id], redirects and the security headers from

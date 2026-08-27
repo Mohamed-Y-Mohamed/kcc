@@ -141,12 +141,17 @@ def main() -> int:
                 "console",
                 lambda m: errors.append(m.text) if m.type == "error" else None,
             )
-            # A 404 on a script or stylesheet is what made an earlier run pass
-            # against a completely broken page.
+            # A 404 on our own script or stylesheet is what made an earlier run
+            # pass against a completely broken page.
+            #
+            # Same-origin only: a third-party embed (the Google Maps iframe)
+            # still in flight when the test navigates away reports as "failed"
+            # when it was merely cancelled, which is noise rather than a defect.
             page.on(
                 "requestfailed",
                 lambda r: errors.append(f"request failed: {r.url[-70:]}")
                 if r.resource_type in ("script", "stylesheet", "document")
+                and r.url.startswith(BASE)
                 else None,
             )
 

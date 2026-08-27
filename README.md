@@ -251,11 +251,20 @@ proper support.
    `netlify.toml`).
 3. **Site configuration → Environment variables**: add every
    `NEXT_PUBLIC_FIREBASE_*` value from your `.env`, plus `NEXT_PUBLIC_SITE_URL`
-   set to your Netlify domain. The build inlines these, so a missing one means a
-   broken site rather than a build error.
+   set to your Netlify domain. **Copy the names exactly** — one dropped
+   character (`EXT_PUBLIC_...`) and the build fails; `next.config.ts` checks for
+   this before building and names the offending variable.
 4. Deploy. Pushes to `master` redeploy automatically.
 5. Firebase console → **Authentication → Settings → Authorised domains** → add
    your Netlify domain, or sign-in will be rejected in production.
+
+**About the secrets scanner.** Netlify flags any environment value it finds in
+the build output, and every variable here is `NEXT_PUBLIC_*` — Next.js's
+explicit convention for "inline this into the browser bundle". They are meant to
+be there; Firebase web config is public by design and `firestore.rules` is what
+protects the data. `netlify.toml` exempts those keys **by name** rather than
+switching scanning off, so a genuinely secret variable added later is still
+caught.
 
 ---
 

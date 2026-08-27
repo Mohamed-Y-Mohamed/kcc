@@ -117,6 +117,8 @@ function UsersPage() {
     <div className="flex flex-col gap-2">
       <AdminHeader
         title="Users"
+        titleSo="Isticmaalayaasha"
+        descriptionSo="Ku raadi iimaylka, beddel xogtooda, dooro waxa ay samayn karaan."
         description="Look someone up by email, change their details, and set what they're allowed to do."
       />
 
@@ -138,6 +140,9 @@ function UsersPage() {
               <span className="tnum text-sm text-ink-muted">
                 {counts[r] ?? 0}
               </span>
+            </span>
+            <span className="font-display text-base text-ink">
+              {ROLE_META[r].labelSo}
             </span>
             <span className="text-xs leading-relaxed text-ink-subtle">
               {ROLE_META[r].summary}

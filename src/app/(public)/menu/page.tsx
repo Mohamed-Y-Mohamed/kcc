@@ -2,13 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { UtensilsCrossed } from "lucide-react";
+import { Search, UtensilsCrossed } from "lucide-react";
 import {
-  groupByCategory,
-  listCategories,
+  categoryLabel,
+  groupBySection,
+  itemNames,
   listMenuItems,
 } from "@/lib/menu";
-import type { MenuCategory, MenuItem } from "@/lib/types";
+import type { MenuItem } from "@/lib/types";
 import { SITE } from "@/lib/site";
 import { Container, Section } from "@/components/ui/Section";
 import { ButtonLink } from "@/components/ui/Button";
@@ -19,16 +20,13 @@ import { cn } from "@/lib/cn";
 
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[] | null>(null);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [error, setError] = useState("");
-  const [active, setActive] = useState<string>("");
+  const [section, setSection] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    Promise.all([listMenuItems(), listCategories()])
-      .then(([nextItems, nextCats]) => {
-        setItems(nextItems);
-        setCategories(nextCats);
-      })
+    listMenuItems()
+      .then(setItems)
       .catch((err) => {
         console.error(err);
         setError("Couldn't load the menu. Refresh the page to try again.");
@@ -36,58 +34,92 @@ export default function MenuPage() {
       });
   }, []);
 
-  const groups = useMemo(
-    () => groupByCategory(categories, items ?? []),
-    [categories, items]
+  // Guests should never see something that isn't being served today.
+  const available = useMemo(
+    () => (items ?? []).filter((i) => i.isActive),
+    [items]
   );
 
-  const shown = active ? groups.filter((g) => g.category.id === active) : groups;
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return available.filter((i) => {
+      if (section && i.section !== section) return false;
+      if (!q) return true;
+      return (
+        i.nameEn.toLowerCase().includes(q) ||
+        i.nameSo.toLowerCase().includes(q) ||
+        categoryLabel(i.category).en.toLowerCase().includes(q)
+      );
+    });
+  }, [available, section, search]);
+
+  const allGroups = useMemo(() => groupBySection(available), [available]);
+  const groups = useMemo(() => groupBySection(filtered), [filtered]);
 
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate overflow-hidden bg-roasted text-bone">
+      <section className="relative isolate overflow-hidden bg-qaxwo text-caano">
         <div className="woven absolute inset-0 opacity-50" aria-hidden />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-roasted via-roasted/95 to-cilaan/30"
+          className="absolute inset-0 bg-gradient-to-br from-qaxwo via-qaxwo/95 to-bun/30"
           aria-hidden
         />
         <Container className="relative">
           <div className="max-w-2xl py-24 sm:py-32">
-            <p className="eyebrow text-xawaash">Menu-ga</p>
+            <p className="eyebrow text-guduud">Menu-ga</p>
             <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.98]">
               Waxa aan kariyo
             </h1>
             <p className="mt-4 font-mono text-[0.7rem] uppercase tracking-[0.24em] text-ciid/70">
               What we cook
             </p>
-            <XawaashRule className="mt-5 max-w-xs text-xawaash" />
+            <XawaashRule className="mt-5 max-w-xs text-guduud" />
             <p className="mt-6 max-w-lg text-base leading-relaxed text-ciid/85">
-              Coffee roasted here, rice cooked here, samosas folded every
-              morning. Prices in US dollars.
+              Quraac, qado, casho iyo cabitaan. Breakfast through to dinner,
+              plus everything from the tea counter.
             </p>
           </div>
         </Container>
       </section>
 
-      {/* Category filter */}
-      {groups.length > 1 && (
+      {/* Section filter + search */}
+      {allGroups.length > 0 && (
         <div className="sticky top-[72px] z-40 border-y border-line bg-surface-raised/95 backdrop-blur-md">
           <Container>
-            <div className="flex gap-1 overflow-x-auto py-3">
-              <FilterChip
-                label="All"
-                active={active === ""}
-                onClick={() => setActive("")}
-              />
-              {groups.map((g) => (
+            <div className="flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="-mx-1 flex gap-1 overflow-x-auto px-1">
                 <FilterChip
-                  key={g.category.id}
-                  label={g.category.nameEn}
-                  active={active === g.category.id}
-                  onClick={() => setActive(g.category.id)}
+                  so="Dhammaan"
+                  en="All"
+                  active={section === ""}
+                  onClick={() => setSection("")}
                 />
-              ))}
+                {allGroups.map((g) => (
+                  <FilterChip
+                    key={g.key}
+                    so={g.so}
+                    en={g.en}
+                    active={section === g.key}
+                    onClick={() => setSection(g.key)}
+                  />
+                ))}
+              </div>
+
+              <div className="relative w-full lg:w-64">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle"
+                  aria-hidden
+                />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  aria-label="Search the menu"
+                  placeholder="Raadi · Search…"
+                  className="h-10 w-full rounded-[2px] border border-line bg-surface pl-9 pr-3 text-sm text-ink placeholder:text-ink-subtle"
+                />
+              </div>
             </div>
           </Container>
         </div>
@@ -102,40 +134,45 @@ export default function MenuPage() {
               {[0, 1].map((g) => (
                 <div key={g} className="flex flex-col gap-4">
                   <Skeleton className="h-8 w-48" />
-                  {[0, 1, 2].map((i) => (
+                  {[0, 1, 2, 3].map((i) => (
                     <Skeleton key={i} className="h-14 w-full" />
                   ))}
                 </div>
               ))}
             </div>
-          ) : groups.length === 0 ? (
+          ) : available.length === 0 ? (
             <EmptyState
               icon={UtensilsCrossed}
               title="The menu isn't online yet"
-              description={`We're still putting it up. Call ${SITE.phone.display} or come in — the board by the counter has everything.`}
+              description={`Call ${SITE.phone.display} or come in — the board by the counter has everything.`}
               action={
                 <ButtonLink href={`tel:${SITE.phone.e164}`}>
                   Call {SITE.phone.display}
                 </ButtonLink>
               }
             />
+          ) : groups.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Nothing matches that"
+              description="Try a different word, or clear the search to see the whole menu."
+            />
           ) : (
             <div className="flex flex-col gap-16">
-              {shown.map(({ category, items: categoryItems }) => (
-                <section key={category.id} id={category.id}>
+              {groups.map((group) => (
+                <section key={group.key} id={group.key}>
                   <header className="flex flex-col gap-2">
                     <h2 className="font-display text-3xl leading-tight text-ink">
-                      {category.nameSo}
+                      {group.so}
                     </h2>
-                    <p className="translation">{category.nameEn}</p>
+                    <p className="translation">
+                      {group.en} · {group.items.length}{" "}
+                      {group.items.length === 1 ? "item" : "items"}
+                    </p>
                     <XawaashRule width="short" className="mt-1" />
                   </header>
 
-                  <ul className="mt-6 divide-y divide-line">
-                    {categoryItems.map((item) => (
-                      <MenuRow key={item.id} item={item} />
-                    ))}
-                  </ul>
+                  <CategoryGroups items={group.items} />
                 </section>
               ))}
             </div>
@@ -143,28 +180,24 @@ export default function MenuPage() {
         </Container>
       </Section>
 
-      {/* Photos, if any dish has one */}
-      <MenuGallery items={items ?? []} />
+      <MenuGallery items={available} />
 
       <Section tone="deep">
         <Container size="narrow" className="text-center">
           <h2 className="font-display text-3xl leading-tight sm:text-4xl">
             Miis ma rabtaa?
           </h2>
-          <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-bone/60">
+          <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-caano/60">
             Want a table?
           </p>
-          <XawaashRule width="short" className="mx-auto mt-4 text-xawaash" />
-          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-bone/85">
+          <XawaashRule width="short" className="mx-auto mt-4 text-guduud" />
+          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-caano/85">
             Walk in any day between {SITE.hours.en}, or let us know you&apos;re
             coming and we&apos;ll keep one free.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <ButtonLink href="/contactus">Book a table</ButtonLink>
-            <ButtonLink
-              href={`tel:${SITE.phone.e164}`}
-              variant="inverse"
-            >
+            <ButtonLink href={`tel:${SITE.phone.e164}`} variant="inverse">
               Call {SITE.phone.display}
             </ButtonLink>
           </div>
@@ -174,12 +207,55 @@ export default function MenuPage() {
   );
 }
 
+/**
+ * Within a day-part, break the list up by category — a run of forty unlabelled
+ * dishes is unreadable, and the categories are already on the data.
+ */
+function CategoryGroups({ items }: { items: MenuItem[] }) {
+  const categories = Array.from(new Set(items.map((i) => i.category))).sort();
+
+  // One category is no grouping at all — just list them.
+  if (categories.length <= 1) {
+    return (
+      <ul className="mt-6 divide-y divide-line">
+        {items.map((item) => (
+          <MenuRow key={item.id} item={item} />
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <div className="mt-6 flex flex-col gap-9">
+      {categories.map((key) => {
+        const label = categoryLabel(key);
+        return (
+          <div key={key}>
+            <h3 className="font-mono text-[0.65rem] uppercase tracking-[0.22em] text-accent">
+              {label.so} · {label.en}
+            </h3>
+            <ul className="mt-2 divide-y divide-line">
+              {items
+                .filter((i) => i.category === key)
+                .map((item) => (
+                  <MenuRow key={item.id} item={item} />
+                ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function FilterChip({
-  label,
+  so,
+  en,
   active,
   onClick,
 }: {
-  label: string;
+  so: string;
+  en: string;
   active: boolean;
   onClick: () => void;
 }) {
@@ -188,48 +264,56 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "shrink-0 rounded-[2px] px-3.5 py-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] transition-colors",
+        "shrink-0 rounded-[2px] px-3.5 py-2 text-left transition-colors",
         active
           ? "bg-accent-solid text-accent-ink"
-          : "text-ink-subtle hover:bg-surface-sunken hover:text-ink"
+          : "text-ink-muted hover:bg-surface-sunken hover:text-ink"
       )}
     >
-      {label}
+      <span className="block font-display text-sm leading-none">{so}</span>
+      <span className="mt-1 block font-mono text-[0.55rem] uppercase tracking-[0.16em] opacity-70">
+        {en}
+      </span>
     </button>
   );
 }
 
-/** Only renders when the kitchen has actually uploaded photos. */
+/** Only renders when items actually have photos. */
 function MenuGallery({ items }: { items: MenuItem[] }) {
-  const withPhotos = items.filter((i) => i.imageUrl).slice(0, 6);
+  const withPhotos = items.filter((i) => i.image).slice(0, 6);
   if (withPhotos.length < 3) return null;
 
   return (
     <Section tone="sunken">
       <Container>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {withPhotos.map((item) => (
-            <li
-              key={item.id}
-              className="group relative aspect-square overflow-hidden border border-line"
-            >
-              <Image
-                src={item.imageUrl}
-                alt={item.nameEn}
-                fill
-                sizes="(max-width: 640px) 50vw, 33vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-roasted/90 to-transparent p-3">
-                <span className="block font-display text-sm text-bone">
-                  {item.nameSo}
+          {withPhotos.map((item) => {
+            const name = itemNames(item);
+            return (
+              <li
+                key={item.id}
+                className="group relative aspect-square overflow-hidden border border-line"
+              >
+                <Image
+                  src={item.image}
+                  alt={item.nameEn}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-qaxwo/90 to-transparent p-3">
+                  <span className="block font-display text-sm text-caano">
+                    {name.lead}
+                  </span>
+                  {name.sub && (
+                    <span className="block font-mono text-[0.55rem] uppercase tracking-[0.16em] text-ciid/70">
+                      {name.sub}
+                    </span>
+                  )}
                 </span>
-                <span className="block font-mono text-[0.55rem] uppercase tracking-[0.16em] text-ciid/70">
-                  {item.nameEn}
-                </span>
-              </span>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </Container>
     </Section>

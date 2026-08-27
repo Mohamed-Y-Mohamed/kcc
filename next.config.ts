@@ -21,7 +21,7 @@ const CSP = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com https://images.unsplash.com https://*.googleusercontent.com",
+  "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://storage.googleapis.com https://*.supabase.co https://images.unsplash.com https://*.googleusercontent.com",
   "media-src 'self'",
   "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net",
   "frame-src https://www.google.com https://maps.google.com",
@@ -48,6 +48,8 @@ const nextConfig: NextConfig = {
       // Admin-uploaded photos for menu items and rooms.
       { protocol: "https", hostname: "firebasestorage.googleapis.com" },
       { protocol: "https", hostname: "storage.googleapis.com" },
+      // Where the imported foodItems photos actually live.
+      { protocol: "https", hostname: "**.supabase.co" },
       // Placeholder photography until the client supplies their own.
       { protocol: "https", hostname: "images.unsplash.com" },
     ],

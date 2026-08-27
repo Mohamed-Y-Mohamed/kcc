@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/cn";
 import { formatPrice } from "@/lib/format";
+import { categoryLabel, itemDescription, itemNames } from "@/lib/menu";
 import type { MenuItem } from "@/lib/types";
 
 /**
@@ -10,21 +11,20 @@ import type { MenuItem } from "@/lib/types";
  */
 export function MenuRow({
   item,
-  compact = false,
+  showCategory = false,
 }: {
   item: MenuItem;
-  compact?: boolean;
+  showCategory?: boolean;
 }) {
+  const name = itemNames(item);
+  const description = itemDescription(item);
+  const category = categoryLabel(item.category);
+
   return (
-    <li
-      className={cn(
-        "group py-3.5",
-        !item.available && "opacity-55"
-      )}
-    >
+    <li className={cn("group py-3.5", !item.isActive && "opacity-55")}>
       <div className="leader">
         <span className="font-display text-lg leading-tight text-ink">
-          {item.nameSo}
+          {name.lead}
         </span>
         <span className="leader-fill" aria-hidden />
         <span className="tnum shrink-0 text-base text-accent">
@@ -33,7 +33,12 @@ export function MenuRow({
       </div>
 
       <div className="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <span className="translation">{item.nameEn}</span>
+        {name.sub && <span className="translation">{name.sub}</span>}
+        {showCategory && item.category && (
+          <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ink-subtle">
+            {category.en}
+          </span>
+        )}
         {item.signature && (
           <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-accent">
             · Signature
@@ -44,16 +49,21 @@ export function MenuRow({
             · Popular
           </span>
         )}
-        {!item.available && (
+        {!item.isActive && (
           <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-danger">
             · Sold out
           </span>
         )}
       </div>
 
-      {!compact && item.descriptionEn && (
+      {description.lead && (
         <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-ink-muted">
-          {item.descriptionEn}
+          {description.lead}
+        </p>
+      )}
+      {description.sub && (
+        <p className="mt-0.5 max-w-prose text-sm leading-relaxed text-ink-subtle">
+          {description.sub}
         </p>
       )}
     </li>

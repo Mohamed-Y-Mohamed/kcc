@@ -27,14 +27,19 @@ export function RequireCapability({
       <Lock className="h-7 w-7 text-ink-subtle" strokeWidth={1.5} />
       <div>
         <h1 className="font-display text-2xl text-ink">
-          Not part of your role
+          Doorkaaga kuma jiro
         </h1>
-        <p className="translation mt-1.5">Access restricted</p>
+        <p className="translation mt-1.5">Not part of your role</p>
       </div>
+      <p className="text-sm leading-relaxed text-ink">
+        Waxaad tahay{" "}
+        <span className="font-medium">{ROLE_META[role].labelSo}</span>. Weydiiso
+        milkiilaha haddii aad u baahan tahay wax dheeraad ah.
+      </p>
       <p className="text-sm leading-relaxed text-ink-muted">
         You&apos;re signed in as{" "}
         <span className="font-medium text-ink">{ROLE_META[role].label}</span>.{" "}
-        {ROLE_META[role].summary} Ask the owner if you need more.
+        {ROLE_META[role].summary}
       </p>
       <ButtonLink href="/admin" variant="secondary" size="sm">
         Back to the overview

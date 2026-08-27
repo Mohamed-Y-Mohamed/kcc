@@ -186,11 +186,13 @@ function RoomsPage() {
     <div className="flex flex-col gap-2">
       <AdminHeader
         title="Rooms"
-        description="Everything here shows on the hotel page. Hidden rooms keep their booking history but guests can't see or book them."
+        titleSo="Qolalka"
+        descriptionSo="Waxa halkan ku jira waxay ka muuqdaan bogga hoteelka."
+        description="Hidden rooms keep their booking history but guests can't see or book them."
         actions={
           <Button onClick={openCreate} size="sm">
             <Plus className="h-4 w-4" />
-            Add a room
+            Ku dar qol · Add a room
           </Button>
         }
       />

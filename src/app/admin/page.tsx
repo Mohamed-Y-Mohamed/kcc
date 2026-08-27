@@ -18,7 +18,7 @@ import { listMenuItems } from "@/lib/menu";
 import { listRooms } from "@/lib/rooms";
 import { listUsers } from "@/lib/users";
 import { listMessages } from "@/lib/messages";
-import { seedStarterContent } from "@/lib/seed";
+import { seedStarterRooms } from "@/lib/seed";
 import { formatDate, formatPrice, todayISO } from "@/lib/format";
 import type { Booking } from "@/lib/types";
 import { AdminHeader, StatCard, TableWrap, Td, Th } from "@/components/admin/Shell";
@@ -83,16 +83,17 @@ export default function AdminOverview() {
   async function onSeed() {
     setSeeding(true);
     try {
-      const result = await seedStarterContent();
-      const added =
-        result.categories + result.items + result.rooms === 0
-          ? "Nothing to add — you already have content."
-          : `Added ${result.items} dishes, ${result.categories} categories and ${result.rooms} rooms.`;
-      toast(added, result.items || result.rooms ? "success" : "info");
+      const result = await seedStarterRooms();
+      toast(
+        result.skipped
+          ? "You already have rooms — nothing was changed."
+          : `Added ${result.rooms} room types. Edit them under Rooms.`,
+        result.skipped ? "info" : "success"
+      );
       await load();
     } catch (err) {
       console.error(err);
-      toast("Couldn't add the starter content. Check your rules.", "error");
+      toast("Couldn't add the starter rooms. Check your rules.", "error");
     } finally {
       setSeeding(false);
     }
@@ -109,12 +110,15 @@ export default function AdminOverview() {
     .filter((b) => b.status === "confirmed" || b.status === "completed")
     .reduce((sum, b) => sum + b.total, 0);
 
-  const isEmpty = stats && stats.menuItems === 0 && stats.rooms === 0;
+  // The menu came across with the import, so only the hotel side can be blank.
+  const needsRooms = stats !== null && stats.rooms === 0;
 
   return (
     <div className="flex flex-col gap-8">
       <AdminHeader
-        title={`Salaan, ${profile?.displayName?.split(" ")[0] || "sahib"}`}
+        title="Overview"
+        titleSo="Guudmar"
+        descriptionSo={`Salaan ${profile?.displayName?.split(" ")[0] || "sahib"} — waxaad tahay ${ROLE_META[role].labelSo}.`}
         description={`Signed in as ${ROLE_META[role].label}. ${ROLE_META[role].summary}`}
         actions={
           can("manageBookings") && (
@@ -127,30 +131,31 @@ export default function AdminOverview() {
 
       {error && <ErrorNote message={error} />}
 
-      {isEmpty && can("seedContent") && (
+      {needsRooms && can("seedContent") && (
         <div className="flex flex-wrap items-center justify-between gap-4 border border-accent-solid/40 bg-accent-solid/5 p-5">
           <div className="flex items-start gap-3">
             <Sprout className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
             <div>
               <p className="font-display text-lg text-ink">
-                Your site has no content yet
+                Weli qolal ma jiraan
               </p>
-              <p className="mt-1 max-w-prose text-sm text-ink-muted">
-                That&apos;s why the menu and hotel pages look empty. Load the
-                starter set — your original Somali menu plus three room types —
-                then edit anything you like. It won&apos;t overwrite existing
-                content.
+              <p className="translation mt-1">No rooms yet</p>
+              <p className="mt-2 max-w-prose text-sm text-ink-muted">
+                The hotel page is empty until rooms exist. Load three starter
+                room types — single, double and family — then edit the prices,
+                photos and descriptions to match. Nothing existing is touched.
               </p>
             </div>
           </div>
           <Button onClick={onSeed} loading={seeding}>
-            Load starter content
+            Ku dar qolal · Add starter rooms
           </Button>
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
+          labelSo="Sugaya xaqiijin"
           label="Awaiting confirmation"
           value={pending.length}
           sub={pending.length ? "Needs a call back" : "All caught up"}
@@ -158,12 +163,14 @@ export default function AdminOverview() {
           tone={pending.length ? "accent" : "neutral"}
         />
         <StatCard
+          labelSo="Marti soo socda"
           label="Upcoming stays"
           value={upcoming.length}
           sub="Checking out today or later"
           icon={CalendarCheck}
         />
         <StatCard
+          labelSo="Dakhliga la xaqiijiyay"
           label="Confirmed revenue"
           value={formatPrice(revenue)}
           sub="Confirmed and completed bookings"
@@ -171,6 +178,7 @@ export default function AdminOverview() {
           tone="deep"
         />
         <StatCard
+          labelSo="Fariimo cusub"
           label="New messages"
           value={stats?.newMessages ?? 0}
           sub={stats?.newMessages ? "Unread enquiries" : "Inbox clear"}
@@ -184,6 +192,7 @@ export default function AdminOverview() {
           <QuickLink
             href="/admin/rooms"
             icon={BedDouble}
+            titleSo="Qolalka"
             title="Rooms"
             value={stats?.rooms ?? 0}
             label="room types"
@@ -193,6 +202,7 @@ export default function AdminOverview() {
           <QuickLink
             href="/admin/menu"
             icon={UtensilsCrossed}
+            titleSo="Cunto & Cabitaan"
             title="Food & drink"
             value={stats?.menuItems ?? 0}
             label="items on the menu"
@@ -202,6 +212,7 @@ export default function AdminOverview() {
           <QuickLink
             href="/admin/users"
             icon={Users}
+            titleSo="Isticmaalayaal"
             title="Users"
             value={stats?.users ?? 0}
             label="registered accounts"
@@ -210,8 +221,8 @@ export default function AdminOverview() {
       </div>
 
       <section>
-        <h2 className="font-display text-2xl text-ink">Next arrivals</h2>
-        <p className="translation mt-1">Who is coming in</p>
+        <h2 className="font-display text-2xl text-ink">Marti soo socda</h2>
+        <p className="translation mt-1">Next arrivals</p>
 
         <div className="mt-5">
           {upcoming.length === 0 ? (
@@ -268,12 +279,14 @@ function QuickLink({
   href,
   icon: Icon,
   title,
+  titleSo,
   value,
   label,
 }: {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   title: string;
+  titleSo: string;
   value: number;
   label: string;
 }) {
@@ -283,9 +296,10 @@ function QuickLink({
       className="group flex items-center gap-4 border border-line bg-surface-raised p-5 transition-colors hover:border-accent-solid"
     >
       <Icon className="h-5 w-5 shrink-0 text-accent" />
-      <div>
-        <p className="font-display text-lg text-ink">{title}</p>
-        <p className="mt-0.5 text-xs text-ink-subtle">
+      <div className="min-w-0">
+        <p className="font-display text-lg text-ink">{titleSo}</p>
+        <p className="translation mt-0.5">{title}</p>
+        <p className="mt-1.5 text-xs text-ink-subtle">
           <span className="tnum text-ink-muted">{value}</span> {label}
         </p>
       </div>

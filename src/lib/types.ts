@@ -15,29 +15,36 @@ export interface AppUser {
   createdAt: Timestamp | null;
 }
 
-export interface MenuCategory {
-  id: string;
-  nameSo: string;
-  nameEn: string;
-  order: number;
-}
-
+/**
+ * Mirrors the existing `foodItems` collection, which was imported before this
+ * rebuild. Its shape is not what we would have designed — names live in a `name`
+ * map, timestamps are ISO strings, and images point at Supabase — but there are
+ * 131 real records in it, so the code bends to the data rather than the reverse.
+ *
+ * `src/lib/menu.ts` does the translation; nothing above it sees the raw shape.
+ */
 export interface MenuItem {
   id: string;
-  nameSo: string;
   nameEn: string;
-  descriptionSo: string;
+  /** Often empty in the imported data — always fall back to English. */
+  nameSo: string;
   descriptionEn: string;
+  descriptionSo: string;
   /** Stored as a number so totals and sorting are arithmetic, not string work. */
   price: number;
-  categoryId: string;
-  imageUrl: string;
-  available: boolean;
+  /** Top-level grouping: breakfast | lunch | dinner | sides | drinks */
+  section: string;
+  /** Sub-type within a section: lunch-food, hot-tea, juice, … */
+  category: string;
+  type: string;
+  image: string;
+  imageSource: string;
+  isActive: boolean;
   popular: boolean;
   signature: boolean;
-  order: number;
-  createdAt: Timestamp | null;
-  updatedAt: Timestamp | null;
+  /** ISO strings, matching the imported records. */
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Room {

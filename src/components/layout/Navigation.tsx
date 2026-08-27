@@ -88,7 +88,7 @@ export default function Navigation() {
           "fixed inset-x-0 top-0 z-[100] transition-colors duration-300",
           solid
             ? "border-b border-line bg-surface/92 backdrop-blur-md"
-            : "border-b border-transparent bg-gradient-to-b from-roasted/55 to-transparent"
+            : "border-b border-transparent bg-gradient-to-b from-qaxwo/55 to-transparent"
         )}
       >
         <Container size="wide">
@@ -113,7 +113,7 @@ export default function Navigation() {
                 <span
                   className={cn(
                     "font-display text-lg tracking-tight transition-colors",
-                    solid ? "text-ink" : "text-bone"
+                    solid ? "text-ink" : "text-caano"
                   )}
                 >
                   KCC
@@ -154,7 +154,7 @@ export default function Navigation() {
                           : "text-ink-muted hover:text-ink"
                         : active
                         ? "text-accent-solid"
-                        : "text-bone/85 hover:text-bone"
+                        : "text-caano/85 hover:text-caano"
                     )}
                   >
                     <span className="font-display text-[0.95rem] leading-none">
@@ -186,7 +186,7 @@ export default function Navigation() {
                   "flex h-11 w-11 items-center justify-center rounded-[2px] transition-colors",
                   solid
                     ? "text-ink-muted hover:bg-surface-sunken hover:text-ink"
-                    : "text-bone/90 hover:bg-bone/10"
+                    : "text-caano/90 hover:bg-caano/10"
                 )}
               >
                 {theme === "dark" ? (
@@ -207,7 +207,7 @@ export default function Navigation() {
                       "flex h-11 items-center gap-1.5 rounded-[2px] px-2.5 text-sm transition-colors",
                       solid
                         ? "text-ink-muted hover:bg-surface-sunken hover:text-ink"
-                        : "text-bone/90 hover:bg-bone/10"
+                        : "text-caano/90 hover:bg-caano/10"
                     )}
                   >
                     <UserIcon className="h-[18px] w-[18px]" />
@@ -258,7 +258,7 @@ export default function Navigation() {
                     "hidden h-11 items-center rounded-[2px] px-3 text-sm transition-colors sm:flex",
                     solid
                       ? "text-ink-muted hover:text-ink"
-                      : "text-bone/90 hover:text-bone"
+                      : "text-caano/90 hover:text-caano"
                   )}
                 >
                   Sign in
@@ -273,7 +273,7 @@ export default function Navigation() {
                   "flex h-11 w-11 items-center justify-center rounded-[2px] transition-colors lg:hidden",
                   solid
                     ? "text-ink hover:bg-surface-sunken"
-                    : "text-bone hover:bg-bone/10"
+                    : "text-caano hover:bg-caano/10"
                 )}
               >
                 {mobileOpen ? (

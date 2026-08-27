@@ -5,18 +5,18 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ---------------------------------------------------------------------------
-   XARRAGO — the KCC palette
-   Somali for "elegance / adornment". Warm roasted ground, spice amber, and a
-   deep indigo counter-accent drawn from Somali textile and the flag, which is
-   what keeps this off the generic cream-and-gold restaurant look.
+   The KCC palette — taken straight off the logo.
+
+   The mark is a deep coffee-brown cup, fork and knife, with the KCC wordmark
+   and its arcs in a bright red, sitting on white. So: brown is the ground, red
+   is the shout, warm white is the paper. Nothing invented.
    --------------------------------------------------------------------------- */
 @theme {
-  --color-roasted: #17110c; /* roasted coffee ground — warm near-black */
-  --color-bone: #f7f1e6; /* bone / unbleached paper */
-  --color-xawaash: #c8892f; /* spice amber — turmeric, cardamom husk */
-  --color-shaash: #123a54; /* deep indigo — Somali textile */
-  --color-cilaan: #8c4a2f; /* henna clay */
-  --color-ciid: #d9c9ae; /* sand */
+  --color-qaxwo: #1c0b07; /* darkest coffee — the dark ground */
+  --color-bun: #4a1d14; /* the cup and cutlery brown */
+  --color-guduud: #d91f16; /* the KCC red, sampled from the wordmark */
+  --color-caano: #faf6f2; /* warm white, the logo's own background */
+  --color-ciid: #d9c3b5; /* tan, for muted text on dark */
 
   --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
@@ -31,61 +31,67 @@
    Semantic tokens. Components only ever reference these, never raw hexes —
    which is how one theme switch repaints the whole site.
    --------------------------------------------------------------------------- */
+/* Every value below was checked against its background: body text clears 4.5:1
+   and large text clears 3:1, in both themes. */
 :root {
-  --surface: #f7f1e6;
-  --surface-raised: #fffdf8;
-  --surface-sunken: #efe6d6;
-  --surface-inverse: #17110c;
+  --surface: #faf6f2;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f2e7e0;
+  --surface-inverse: #1c0b07;
 
-  --ink: #17110c;
-  --ink-muted: #6b5b49;
-  --ink-subtle: #7a6a57;
-  --ink-inverse: #f7f1e6;
+  --ink: #2a0f0a;
+  --ink-muted: #6b4237; /* 7.9:1 */
+  --ink-subtle: #8a6055; /* 5.0:1 */
+  --ink-inverse: #faf6f2;
 
-  --line: #e0d3bc;
-  --line-strong: #c9b899;
+  --line: #eadcd4;
+  --line-strong: #d3bbae;
 
-  --accent: #8a5a15; /* amber, darkened until it passes 4.5:1 on bone */
-  --accent-solid: #c8892f; /* amber for fills, borders, rules */
-  --accent-ink: #17110c; /* text sitting on an accent fill */
+  /* The logo red is a touch bright for body text, so text uses a shade down
+     while fills keep the exact brand value. */
+  --accent: #c41b12; /* 5.5:1 on the warm white */
+  --accent-solid: #d91f16; /* the logo red */
+  --accent-ink: #ffffff; /* 5.1:1 on that red */
 
-  --deep: #123a54; /* shaash indigo */
-  --deep-solid: #123a54;
-  --deep-ink: #f7f1e6;
+  --deep: #4a1d14; /* the cup brown */
+  --deep-solid: #3e1811;
+  --deep-ink: #faf6f2;
 
-  --danger: #9b2c2c;
-  --success: #2f6b4f;
+  /* Red is the brand colour, so destructive actions never rely on hue alone —
+     they always carry an icon and an explicit verb as well. */
+  --danger: #b01610;
+  --success: #1f7a4d;
 
-  --shadow-raised: 0 1px 2px rgb(23 17 12 / 0.06), 0 8px 24px -12px
-    rgb(23 17 12 / 0.18);
+  --shadow-raised: 0 1px 2px rgb(42 15 10 / 0.07), 0 8px 24px -12px
+    rgb(42 15 10 / 0.22);
 }
 
 .dark {
-  --surface: #17110c;
-  --surface-raised: #211913;
-  --surface-sunken: #0e0a07;
-  --surface-inverse: #f7f1e6;
+  --surface: #1c0b07;
+  --surface-raised: #2a120c;
+  --surface-sunken: #120705;
+  --surface-inverse: #faf6f2;
 
-  --ink: #f2e9da;
-  --ink-muted: #b0a08b;
-  --ink-subtle: #8a7a66;
-  --ink-inverse: #17110c;
+  --ink: #f7ebe5;
+  --ink-muted: #c9aa9e;
+  --ink-subtle: #9b7a6e; /* 4.9:1 */
+  --ink-inverse: #1c0b07;
 
-  --line: #33261b;
-  --line-strong: #4a3826;
+  --line: #3b1c14;
+  --line-strong: #57291d;
 
-  --accent: #e0a445;
-  --accent-solid: #c8892f;
-  --accent-ink: #17110c;
+  --accent: #ff6152; /* 6.4:1 on the dark ground */
+  --accent-solid: #d91f16;
+  --accent-ink: #ffffff;
 
-  --deep: #7fb4d4;
-  --deep-solid: #123a54;
-  --deep-ink: #f7f1e6;
+  --deep: #dda795;
+  --deep-solid: #3e1811;
+  --deep-ink: #faf6f2;
 
-  --danger: #f28b82;
-  --success: #7fc9a3;
+  --danger: #ff7a6e;
+  --success: #6fcf9a;
 
-  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 24px -12px rgb(0 0 0 / 0.8);
 }
 
 /* `inline` keeps the utilities pointing at the live var, so toggling .dark

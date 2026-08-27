@@ -120,6 +120,8 @@ function BookingsPage() {
     <div className="flex flex-col gap-2">
       <AdminHeader
         title="Bookings"
+        titleSo="Qabsashada"
+        descriptionSo={`${counts.pending} sugaya xaqiijin · ${counts.staying} marti oo hadda jooga.`}
         description={
           counts.pending
             ? `${counts.pending} waiting to be confirmed. ${counts.staying} guest${counts.staying === 1 ? "" : "s"} in the building right now.`

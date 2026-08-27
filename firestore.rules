@@ -138,16 +138,14 @@ service cloud.firestore {
       allow delete: if myRole() == 'owner' && resource.data.role != 'owner';
     }
 
-    // ------------------------------------------------- menu, categories, rooms
+    // ---------------------------------------------------- food and rooms
     //
     // Public reading is the point — these are the shop window.
+    //
+    // `foodItems` holds the 131 records imported before this rebuild. It keeps
+    // its original name and field shape; src/lib/menu.ts does the translating.
 
-    match /menuCategories/{id} {
-      allow read: if true;
-      allow write: if canManageContent();
-    }
-
-    match /menuItems/{id} {
+    match /foodItems/{id} {
       allow read: if true;
       allow write: if canManageContent();
     }
@@ -155,6 +153,13 @@ service cloud.firestore {
     match /rooms/{id} {
       allow read: if true;
       allow write: if canManageContent();
+    }
+
+    // Legacy collection from the previous app, superseded by `users`. Readable
+    // by staff so nothing is lost, but nothing writes to it any more.
+    match /user/{id} {
+      allow read: if canManageUsers();
+      allow write: if false;
     }
 
     // ----------------------------------------------------------- dateBlocks

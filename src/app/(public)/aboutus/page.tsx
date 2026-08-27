@@ -38,22 +38,22 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate overflow-hidden bg-roasted text-bone">
+      <section className="relative isolate overflow-hidden bg-qaxwo text-caano">
         <div className="woven absolute inset-0 opacity-50" aria-hidden />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-roasted via-roasted/95 to-cilaan/35"
+          className="absolute inset-0 bg-gradient-to-br from-qaxwo via-qaxwo/95 to-bun/35"
           aria-hidden
         />
         <Container className="relative">
           <div className="max-w-2xl py-24 sm:py-32">
-            <p className="eyebrow text-xawaash">Ku saabsan</p>
+            <p className="eyebrow text-guduud">Ku saabsan</p>
             <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.98]">
               Kuwa aan nahay
             </h1>
             <p className="mt-4 font-mono text-[0.7rem] uppercase tracking-[0.24em] text-ciid/70">
               Who we are
             </p>
-            <XawaashRule className="mt-5 max-w-xs text-xawaash" />
+            <XawaashRule className="mt-5 max-w-xs text-guduud" />
             <p className="mt-6 max-w-lg text-base leading-relaxed text-ciid/85">
               A coffee house on {SITE.address.street} that also feeds people and
               keeps rooms upstairs. That is the whole of it.
@@ -149,18 +149,18 @@ export default function AboutPage() {
       <Section tone="deep">
         <Container size="narrow" className="text-center">
           <Coffee
-            className="mx-auto h-7 w-7 text-xawaash"
+            className="mx-auto h-7 w-7 text-guduud"
             strokeWidth={1.5}
             aria-hidden
           />
           <h2 className="mt-5 font-display text-3xl leading-tight sm:text-4xl">
             Soo gal, qaxwo cab
           </h2>
-          <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-bone/60">
+          <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-caano/60">
             Come in, have a coffee
           </p>
-          <XawaashRule width="short" className="mx-auto mt-4 text-xawaash" />
-          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-bone/85">
+          <XawaashRule width="short" className="mx-auto mt-4 text-guduud" />
+          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-caano/85">
             {SITE.address.full}. Open {SITE.hours.en}, {SITE.hours.daysEn}.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">

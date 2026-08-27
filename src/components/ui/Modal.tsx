@@ -87,7 +87,7 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-[150] flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-6">
       <div
-        className="fixed inset-0 bg-roasted/70 backdrop-blur-sm animate-[rise_0.2s_ease-out_both]"
+        className="fixed inset-0 bg-qaxwo/70 backdrop-blur-sm animate-[rise_0.2s_ease-out_both]"
         onClick={onClose}
         aria-hidden
       />

@@ -23,14 +23,29 @@ export function LoadingBlock({ label = "Loading" }: { label?: string }) {
   );
 }
 
-/** Matches the shape of the real content so nothing shifts when it lands. */
-export function Skeleton({ className }: { className?: string }) {
+/**
+ * Matches the shape of the real content so nothing shifts when it lands.
+ *
+ * `tone="inverse"` is for the panels that stay dark in both themes — the hero
+ * board, mainly. Passing a background class in `className` does not work: it
+ * loses the cascade to the base colour and paints a near-white slab on a dark
+ * panel.
+ */
+export function Skeleton({
+  className,
+  tone = "default",
+}: {
+  className?: string;
+  tone?: "default" | "inverse";
+}) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[2px] bg-surface-sunken",
+        "relative overflow-hidden rounded-[2px]",
+        tone === "inverse" ? "bg-caano/10" : "bg-surface-sunken",
         "after:absolute after:inset-0 after:-translate-x-full after:bg-gradient-to-r",
-        "after:from-transparent after:via-line/60 after:to-transparent",
+        "after:from-transparent after:to-transparent",
+        tone === "inverse" ? "after:via-caano/15" : "after:via-line/60",
         "after:animate-[shimmer_1.6s_infinite]",
         className
       )}

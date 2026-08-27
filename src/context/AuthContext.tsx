@@ -38,7 +38,8 @@ interface AuthContextValue {
     displayName: string;
     phone: string;
   }) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  /** Resolves the profile before returning, so callers can route by role. */
+  signIn: (email: string, password: string) => Promise<AppUser>;
   signOutUser: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -135,7 +136,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signIn = useCallback(async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email.trim(), password);
+    const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
+    // onAuthStateChanged will also fire, but it lands a moment later — waiting
+    // for the profile here means the login page can send staff straight to the
+    // dashboard instead of bouncing them through the customer site first.
+    const next = await ensureUserProfile(cred.user);
+    setProfile(next);
+    return next;
   }, []);
 
   const signOutUser = useCallback(async () => {

@@ -1,29 +1,25 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { Eye, EyeOff, Pencil, Plus, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import {
-  Eye,
-  EyeOff,
-  FolderPlus,
-  Pencil,
-  Plus,
-  Trash2,
-  UtensilsCrossed,
-} from "lucide-react";
-import {
-  createCategory,
+  CATEGORY_LABELS,
+  SECTION_LABELS,
+  categoryLabel,
   createMenuItem,
-  deleteCategory,
   deleteMenuItem,
-  listCategories,
+  distinctCategories,
+  distinctSections,
+  itemNames,
   listMenuItems,
+  sectionLabel,
   updateMenuItem,
   type MenuItemInput,
 } from "@/lib/menu";
 import { formatPrice } from "@/lib/format";
-import type { MenuCategory, MenuItem } from "@/lib/types";
-import { AdminHeader, SearchInput, TableWrap, Td, Th, Toolbar } from "@/components/admin/Shell";
+import type { MenuItem } from "@/lib/types";
+import { AdminHeader, TableWrap, Td, Th, Toolbar } from "@/components/admin/Shell";
 import { RequireCapability } from "@/components/admin/RequireCapability";
 import { Button } from "@/components/ui/Button";
 import { Checkbox, Input, Select, Textarea } from "@/components/ui/Field";
@@ -34,17 +30,19 @@ import { EmptyState, ErrorNote, LoadingBlock } from "@/components/ui/Feedback";
 import { useToast } from "@/components/ui/Toast";
 
 const BLANK: MenuItemInput = {
-  nameSo: "",
   nameEn: "",
-  descriptionSo: "",
+  nameSo: "",
   descriptionEn: "",
+  descriptionSo: "",
   price: 0,
-  categoryId: "",
-  imageUrl: "",
-  available: true,
+  section: "lunch",
+  category: "lunch-food",
+  type: "Normal",
+  image: "",
+  imageSource: "none",
+  isActive: true,
   popular: false,
   signature: false,
-  order: 0,
 };
 
 export default function AdminMenuPage() {
@@ -59,9 +57,9 @@ function MenuPage() {
   const { toast } = useToast();
 
   const [items, setItems] = useState<MenuItem[] | null>(null);
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [sectionFilter, setSectionFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
 
   const [editing, setEditing] = useState<MenuItem | null>(null);
@@ -70,23 +68,13 @@ function MenuPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const [catOpen, setCatOpen] = useState(false);
-  const [catForm, setCatForm] = useState({ nameSo: "", nameEn: "" });
-  const [catSaving, setCatSaving] = useState(false);
-
   const [deleting, setDeleting] = useState<MenuItem | null>(null);
   const [deletingBusy, setDeletingBusy] = useState(false);
-  const [deletingCat, setDeletingCat] = useState<MenuCategory | null>(null);
 
   const load = useCallback(async () => {
     setError("");
     try {
-      const [nextItems, nextCats] = await Promise.all([
-        listMenuItems(),
-        listCategories(),
-      ]);
-      setItems(nextItems);
-      setCategories(nextCats);
+      setItems(await listMenuItems());
     } catch (err) {
       console.error(err);
       setError("Couldn't load the menu. Check Firestore rules are deployed.");
@@ -98,12 +86,11 @@ function MenuPage() {
     load();
   }, [load]);
 
+  const sections = useMemo(() => distinctSections(items ?? []), [items]);
+  const categories = useMemo(() => distinctCategories(items ?? []), [items]);
+
   function openCreate() {
-    setForm({
-      ...BLANK,
-      categoryId: categories[0]?.id ?? "",
-      order: (items?.length ?? 0) + 1,
-    });
+    setForm({ ...BLANK, section: sectionFilter || "lunch" });
     setFormError("");
     setEditing(null);
     setCreating(true);
@@ -133,27 +120,28 @@ function MenuPage() {
     e.preventDefault();
     setFormError("");
 
-    if (!form.nameSo.trim() || !form.nameEn.trim()) {
-      setFormError("Both the Somali and English names are needed.");
+    if (!form.nameEn.trim() && !form.nameSo.trim()) {
+      setFormError("Give it a name in at least one language.");
       return;
     }
-    if (!form.categoryId) {
-      setFormError("Pick a category. Add one first if the list is empty.");
+    if (!form.section) {
+      setFormError("Pick which part of the day this belongs to.");
       return;
     }
-    if (form.price <= 0) {
-      setFormError("Set a price above zero.");
+    if (form.price < 0) {
+      setFormError("Price can't be negative.");
       return;
     }
 
     setSaving(true);
     try {
+      const label = form.nameEn || form.nameSo;
       if (editing) {
         await updateMenuItem(editing.id, form);
-        toast(`${form.nameEn} updated.`, "success");
+        toast(`${label} updated.`, "success");
       } else {
         await createMenuItem(form);
-        toast(`${form.nameEn} added to the menu.`, "success");
+        toast(`${label} added to the menu.`, "success");
       }
       closeForm();
       await load();
@@ -165,34 +153,12 @@ function MenuPage() {
     }
   }
 
-  async function saveCategory(e: React.FormEvent) {
-    e.preventDefault();
-    if (!catForm.nameSo.trim() || !catForm.nameEn.trim()) return;
-    setCatSaving(true);
+  async function toggleActive(item: MenuItem) {
+    const label = itemNames(item).lead;
     try {
-      await createCategory({
-        nameSo: catForm.nameSo.trim(),
-        nameEn: catForm.nameEn.trim(),
-        order: categories.length + 1,
-      });
-      toast(`Category "${catForm.nameEn}" added.`, "success");
-      setCatForm({ nameSo: "", nameEn: "" });
-      setCatOpen(false);
-      await load();
-    } catch {
-      toast("Couldn't add that category.", "error");
-    } finally {
-      setCatSaving(false);
-    }
-  }
-
-  async function toggleAvailable(item: MenuItem) {
-    try {
-      await updateMenuItem(item.id, { available: !item.available });
+      await updateMenuItem(item.id, { isActive: !item.isActive });
       toast(
-        item.available
-          ? `${item.nameEn} marked sold out.`
-          : `${item.nameEn} is back on.`,
+        item.isActive ? `${label} marked sold out.` : `${label} is back on.`,
         "success"
       );
       await load();
@@ -202,17 +168,12 @@ function MenuPage() {
   }
 
   async function confirmDelete() {
+    if (!deleting) return;
     setDeletingBusy(true);
     try {
-      if (deleting) {
-        await deleteMenuItem(deleting.id);
-        toast(`${deleting.nameEn} deleted.`, "success");
-        setDeleting(null);
-      } else if (deletingCat) {
-        await deleteCategory(deletingCat.id);
-        toast(`Category "${deletingCat.nameEn}" deleted.`, "success");
-        setDeletingCat(null);
-      }
+      await deleteMenuItem(deleting.id);
+      toast(`${itemNames(deleting).lead} deleted.`, "success");
+      setDeleting(null);
       await load();
     } catch {
       toast("Couldn't delete that.", "error");
@@ -221,11 +182,9 @@ function MenuPage() {
     }
   }
 
-  const categoryName = (id: string) =>
-    categories.find((c) => c.id === id)?.nameEn ?? "Uncategorised";
-
   const filtered = (items ?? []).filter((i) => {
-    if (categoryFilter && i.categoryId !== categoryFilter) return false;
+    if (sectionFilter && i.section !== sectionFilter) return false;
+    if (categoryFilter && i.category !== categoryFilter) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -233,32 +192,68 @@ function MenuPage() {
     );
   });
 
+  const missingSomali = (items ?? []).filter(
+    (i) => i.nameEn && !i.nameSo.trim()
+  ).length;
+
   return (
     <div className="flex flex-col gap-2">
       <AdminHeader
         title="Food & drink"
-        description="This is the menu customers read. Sold-out items stay listed but greyed out."
+        titleSo="Cunto & Cabitaan"
+        descriptionSo="Kanu waa menu-ga ay macmiilku akhriyaan."
+        description="Sold-out items stay listed but greyed out for guests."
         actions={
-          <>
-            <Button variant="secondary" size="sm" onClick={() => setCatOpen(true)}>
-              <FolderPlus className="h-4 w-4" />
-              Add category
-            </Button>
-            <Button size="sm" onClick={openCreate}>
-              <Plus className="h-4 w-4" />
-              Add food
-            </Button>
-          </>
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="h-4 w-4" />
+            Ku dar cunto · Add food
+          </Button>
         }
       />
 
+      {/* The import brought English names only. Worth knowing, not an error. */}
+      {missingSomali > 0 && (
+        <div className="mt-5 border-l-2 border-accent-solid bg-accent-solid/5 px-4 py-3">
+          <p className="text-sm text-ink">
+            <span className="font-medium">{missingSomali}</span> items have no
+            Somali name yet — guests see the English one instead.
+          </p>
+          <p className="translation mt-1">
+            Add Somali names as you go and the menu becomes fully bilingual
+          </p>
+        </div>
+      )}
+
       <Toolbar>
-        <SearchInput
-          label="Search the menu"
-          value={search}
-          onChange={setSearch}
-          placeholder="Search dishes…"
-        />
+        <div className="relative w-full sm:w-72">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={search}
+            aria-label="Search the menu"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Raadi cunto · Search dishes…"
+            className="h-10 w-full rounded-[2px] border border-line bg-surface-raised pl-9 pr-3 text-sm text-ink placeholder:text-ink-subtle"
+          />
+        </div>
+
+        <select
+          value={sectionFilter}
+          onChange={(e) => setSectionFilter(e.target.value)}
+          aria-label="Filter by section"
+          className="h-10 rounded-[2px] border border-line bg-surface-raised px-3 text-sm text-ink"
+        >
+          <option value="">All sections</option>
+          {sections.map((key) => (
+            <option key={key} value={key}>
+              {sectionLabel(key).so} · {sectionLabel(key).en}
+            </option>
+          ))}
+        </select>
+
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
@@ -266,12 +261,13 @@ function MenuPage() {
           className="h-10 rounded-[2px] border border-line bg-surface-raised px-3 text-sm text-ink"
         >
           <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nameEn}
+          {categories.map((key) => (
+            <option key={key} value={key}>
+              {categoryLabel(key).en}
             </option>
           ))}
         </select>
+
         {items && (
           <span className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-ink-subtle">
             {filtered.length} of {items.length}
@@ -281,29 +277,6 @@ function MenuPage() {
 
       {error && <ErrorNote message={error} />}
 
-      {categories.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-ink-subtle">
-            Categories
-          </span>
-          {categories.map((c) => (
-            <span
-              key={c.id}
-              className="inline-flex items-center gap-1.5 rounded-[2px] border border-line px-2 py-1 text-xs text-ink-muted"
-            >
-              {c.nameEn}
-              <button
-                onClick={() => setDeletingCat(c)}
-                aria-label={`Delete category ${c.nameEn}`}
-                className="text-ink-subtle hover:text-danger"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
       {items === null ? (
         <LoadingBlock label="Loading the menu" />
       ) : filtered.length === 0 ? (
@@ -312,14 +285,12 @@ function MenuPage() {
           title={items.length === 0 ? "Nothing on the menu yet" : "Nothing matches"}
           description={
             items.length === 0
-              ? "Add a category first, then start adding dishes. They appear on the menu page straight away."
-              : "Try a different search or clear the category filter."
+              ? "Add your first dish and it appears on the menu page straight away."
+              : "Try a different search, or clear the filters."
           }
           action={
             items.length === 0 ? (
-              <Button onClick={categories.length ? openCreate : () => setCatOpen(true)}>
-                {categories.length ? "Add food" : "Add a category"}
-              </Button>
+              <Button onClick={openCreate}>Add food</Button>
             ) : undefined
           }
         />
@@ -329,6 +300,7 @@ function MenuPage() {
             <tr>
               <Th className="w-16">Photo</Th>
               <Th>Dish</Th>
+              <Th>Section</Th>
               <Th>Category</Th>
               <Th>Price</Th>
               <Th>Tags</Th>
@@ -337,98 +309,112 @@ function MenuPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((item) => (
-              <tr key={item.id} className="hover:bg-surface-sunken">
-                <Td>
-                  <span className="relative block h-11 w-11 overflow-hidden rounded-[2px] border border-line bg-surface-sunken">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt=""
-                        fill
-                        sizes="44px"
-                        className="object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <span className="woven block h-full w-full" />
-                    )}
-                  </span>
-                </Td>
-                <Td>
-                  <span className="block font-display text-base">
-                    {item.nameSo}
-                  </span>
-                  <span className="translation">{item.nameEn}</span>
-                </Td>
-                <Td className="text-sm text-ink-muted">
-                  {categoryName(item.categoryId)}
-                </Td>
-                <Td className="tnum whitespace-nowrap text-accent">
-                  {formatPrice(item.price)}
-                </Td>
-                <Td>
-                  <div className="flex flex-wrap gap-1">
-                    {item.signature && <Badge tone="accent">Signature</Badge>}
-                    {item.popular && <Badge tone="neutral">Popular</Badge>}
-                  </div>
-                </Td>
-                <Td>
-                  {item.available ? (
-                    <Badge tone="success" icon={Eye}>
-                      On
-                    </Badge>
-                  ) : (
-                    <Badge tone="danger" icon={EyeOff}>
-                      Sold out
-                    </Badge>
-                  )}
-                </Td>
-                <Td>
-                  <div className="flex justify-end gap-1">
-                    <button
-                      onClick={() => toggleAvailable(item)}
-                      aria-label={
-                        item.available
-                          ? `Mark ${item.nameEn} sold out`
-                          : `Put ${item.nameEn} back on`
-                      }
-                      className="p-2 text-ink-subtle transition-colors hover:text-ink"
-                    >
-                      {item.available ? (
-                        <EyeOff className="h-4 w-4" />
+            {filtered.map((item) => {
+              const name = itemNames(item);
+              return (
+                <tr key={item.id} className="hover:bg-surface-sunken">
+                  <Td>
+                    <span className="relative block h-11 w-11 overflow-hidden rounded-[2px] border border-line bg-surface-sunken">
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          alt=""
+                          fill
+                          sizes="44px"
+                          className="object-cover"
+                          unoptimized
+                        />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <span className="woven block h-full w-full" />
                       )}
-                    </button>
-                    <button
-                      onClick={() => openEdit(item)}
-                      aria-label={`Edit ${item.nameEn}`}
-                      className="p-2 text-ink-subtle transition-colors hover:text-accent"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleting(item)}
-                      aria-label={`Delete ${item.nameEn}`}
-                      className="p-2 text-ink-subtle transition-colors hover:text-danger"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </Td>
-              </tr>
-            ))}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span className="block font-display text-base">
+                      {name.lead}
+                    </span>
+                    {name.sub ? (
+                      <span className="translation">{name.sub}</span>
+                    ) : (
+                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-ink-subtle">
+                        No Somali name
+                      </span>
+                    )}
+                  </Td>
+                  <Td className="whitespace-nowrap text-sm text-ink-muted">
+                    {sectionLabel(item.section).en}
+                  </Td>
+                  <Td className="whitespace-nowrap text-sm text-ink-muted">
+                    {categoryLabel(item.category).en}
+                  </Td>
+                  <Td className="tnum whitespace-nowrap text-accent">
+                    {formatPrice(item.price)}
+                  </Td>
+                  <Td>
+                    <div className="flex flex-wrap gap-1">
+                      {item.signature && <Badge tone="accent">Signature</Badge>}
+                      {item.popular && <Badge tone="neutral">Popular</Badge>}
+                    </div>
+                  </Td>
+                  <Td>
+                    {item.isActive ? (
+                      <Badge tone="success" icon={Eye}>
+                        On
+                      </Badge>
+                    ) : (
+                      <Badge tone="danger" icon={EyeOff}>
+                        Sold out
+                      </Badge>
+                    )}
+                  </Td>
+                  <Td>
+                    <div className="flex justify-end gap-1">
+                      <button
+                        onClick={() => toggleActive(item)}
+                        aria-label={
+                          item.isActive
+                            ? `Mark ${name.lead} sold out`
+                            : `Put ${name.lead} back on`
+                        }
+                        className="p-2 text-ink-subtle transition-colors hover:text-ink"
+                      >
+                        {item.isActive ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => openEdit(item)}
+                        aria-label={`Edit ${name.lead}`}
+                        className="p-2 text-ink-subtle transition-colors hover:text-accent"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleting(item)}
+                        aria-label={`Delete ${name.lead}`}
+                        className="p-2 text-ink-subtle transition-colors hover:text-danger"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </Td>
+                </tr>
+              );
+            })}
           </tbody>
         </TableWrap>
       )}
 
-      {/* Add / edit dish */}
       <Modal
         open={creating || editing !== null}
         onClose={closeForm}
         size="md"
-        title={editing ? `Edit ${editing.nameEn}` : "Add food or drink"}
+        title={
+          editing ? `Edit ${itemNames(editing).lead}` : "Add food or drink"
+        }
+        titleSo={editing ? "Wax ka beddel" : "Ku dar cunto"}
         footer={
           <>
             <Button variant="ghost" onClick={closeForm}>
@@ -445,45 +431,63 @@ function MenuPage() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Input
-              label="Name (Somali)"
-              value={form.nameSo}
-              onChange={(e) => set("nameSo", e.target.value)}
-              placeholder="Bariis Iskukaris"
-              required
-            />
-            <Input
               label="Name (English)"
+              labelSo="Magaca (Ingiriisi)"
               value={form.nameEn}
               onChange={(e) => set("nameEn", e.target.value)}
               placeholder="Spiced rice"
-              required
+            />
+            <Input
+              label="Name (Somali)"
+              labelSo="Magaca (Soomaali)"
+              value={form.nameSo}
+              onChange={(e) => set("nameSo", e.target.value)}
+              placeholder="Bariis Iskukaris"
+              hint="Shown first on the menu when it's filled in."
             />
           </div>
 
           <Textarea
-            label="Description (Somali)"
-            value={form.descriptionSo}
-            onChange={(e) => set("descriptionSo", e.target.value)}
+            label="Description (English)"
+            labelSo="Faahfaahin (Ingiriisi)"
+            value={form.descriptionEn}
+            onChange={(e) => set("descriptionEn", e.target.value)}
             rows={2}
           />
           <Textarea
-            label="Description (English)"
-            value={form.descriptionEn}
-            onChange={(e) => set("descriptionEn", e.target.value)}
+            label="Description (Somali)"
+            labelSo="Faahfaahin (Soomaali)"
+            value={form.descriptionSo}
+            onChange={(e) => set("descriptionSo", e.target.value)}
             rows={2}
           />
 
           <div className="grid gap-5 sm:grid-cols-3">
             <Select
-              label="Category"
-              value={form.categoryId}
-              onChange={(e) => set("categoryId", e.target.value)}
-              options={categories.map((c) => ({ value: c.id, label: c.nameEn }))}
-              placeholder={categories.length ? "Choose…" : "Add a category first"}
+              label="Section"
+              labelSo="Qaybta"
+              value={form.section}
+              onChange={(e) => set("section", e.target.value)}
+              options={Object.keys(SECTION_LABELS).map((key) => ({
+                value: key,
+                label: `${SECTION_LABELS[key].so} · ${SECTION_LABELS[key].en}`,
+              }))}
+              hint="Which part of the day."
               required
+            />
+            <Select
+              label="Category"
+              labelSo="Nooca"
+              value={form.category}
+              onChange={(e) => set("category", e.target.value)}
+              options={Object.keys(CATEGORY_LABELS).map((key) => ({
+                value: key,
+                label: CATEGORY_LABELS[key].en,
+              }))}
             />
             <Input
               label="Price ($)"
+              labelSo="Qiimaha ($)"
               type="number"
               min={0}
               step="0.25"
@@ -491,39 +495,32 @@ function MenuPage() {
               onChange={(e) => set("price", Number(e.target.value))}
               required
             />
-            <Input
-              label="Sort order"
-              type="number"
-              value={form.order}
-              onChange={(e) => set("order", Number(e.target.value))}
-              hint="Lower shows first."
-            />
           </div>
 
           <ImageField
             label="Photo"
-            value={form.imageUrl}
-            onChange={(url) => set("imageUrl", url)}
+            value={form.image}
+            onChange={(url) => set("image", url)}
             folder="menu"
-            hint="Optional. A woven pattern is used when there's no photo."
+            hint="Paste a link or upload. A woven pattern shows when there's no photo."
           />
 
           <fieldset className="flex flex-col gap-3 border-t border-line pt-5">
             <legend className="sr-only">Options</legend>
             <Checkbox
-              label="Available"
+              label="Available · La heli karo"
               hint="Turn off to show it as sold out."
-              checked={form.available}
-              onChange={(on) => set("available", on)}
+              checked={form.isActive}
+              onChange={(on) => set("isActive", on)}
             />
             <Checkbox
-              label="Signature dish"
+              label="Signature dish · Cunto gaar ah"
               hint="Highlighted, and shown on the home page board."
               checked={form.signature}
               onChange={(on) => set("signature", on)}
             />
             <Checkbox
-              label="Popular"
+              label="Popular · Caan ah"
               checked={form.popular}
               onChange={(on) => set("popular", on)}
             />
@@ -531,60 +528,13 @@ function MenuPage() {
         </form>
       </Modal>
 
-      {/* Add category */}
-      <Modal
-        open={catOpen}
-        onClose={() => setCatOpen(false)}
-        size="sm"
-        title="Add a category"
-        description="Categories are the headings on the menu page."
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setCatOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" form="cat-form" loading={catSaving}>
-              Add category
-            </Button>
-          </>
-        }
-      >
-        <form id="cat-form" onSubmit={saveCategory} className="flex flex-col gap-5">
-          <Input
-            label="Name (Somali)"
-            value={catForm.nameSo}
-            onChange={(e) => setCatForm((f) => ({ ...f, nameSo: e.target.value }))}
-            placeholder="Cuntada Weyn"
-            required
-          />
-          <Input
-            label="Name (English)"
-            value={catForm.nameEn}
-            onChange={(e) => setCatForm((f) => ({ ...f, nameEn: e.target.value }))}
-            placeholder="Main dishes"
-            required
-          />
-        </form>
-      </Modal>
-
       <ConfirmDialog
-        open={deleting !== null || deletingCat !== null}
-        onClose={() => {
-          setDeleting(null);
-          setDeletingCat(null);
-        }}
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
         onConfirm={confirmDelete}
         loading={deletingBusy}
-        title={
-          deleting
-            ? `Delete ${deleting.nameEn}?`
-            : `Delete category ${deletingCat?.nameEn}?`
-        }
-        body={
-          deleting
-            ? "This removes the dish from the menu permanently. To take it off temporarily, mark it sold out instead."
-            : "Dishes in this category stay in the system but won't show on the menu until you move them to another category."
-        }
+        title={`Delete ${deleting ? itemNames(deleting).lead : "this dish"}?`}
+        body="This removes it from the menu permanently. To take it off temporarily, mark it sold out instead."
       />
     </div>
   );

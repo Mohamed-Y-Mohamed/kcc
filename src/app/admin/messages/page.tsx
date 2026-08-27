@@ -92,6 +92,12 @@ function MessagesPage() {
     <div className="flex flex-col gap-2">
       <AdminHeader
         title="Messages"
+        titleSo="Fariimaha"
+        descriptionSo={
+          unread
+            ? `${unread} fariin oo aan la akhrin.`
+            : "Wax fariin cusub ah ma jiraan."
+        }
         description={
           unread
             ? `${unread} unread ${unread === 1 ? "enquiry" : "enquiries"} from the contact form.`

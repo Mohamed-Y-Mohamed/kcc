@@ -103,22 +103,22 @@ export default function ContactPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate overflow-hidden bg-roasted text-bone">
+      <section className="relative isolate overflow-hidden bg-qaxwo text-caano">
         <div className="woven absolute inset-0 opacity-50" aria-hidden />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-roasted via-roasted/95 to-shaash/45"
+          className="absolute inset-0 bg-gradient-to-br from-qaxwo via-qaxwo/95 to-bun/45"
           aria-hidden
         />
         <Container className="relative">
           <div className="max-w-2xl py-24 sm:py-32">
-            <p className="eyebrow text-xawaash">Xiriir</p>
+            <p className="eyebrow text-guduud">Xiriir</p>
             <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.98]">
               Nala soo xiriir
             </h1>
             <p className="mt-4 font-mono text-[0.7rem] uppercase tracking-[0.24em] text-ciid/70">
               Get in touch
             </p>
-            <XawaashRule className="mt-5 max-w-xs text-xawaash" />
+            <XawaashRule className="mt-5 max-w-xs text-guduud" />
             <p className="mt-6 max-w-lg text-base leading-relaxed text-ciid/85">
               Book a table, ask about a large group, or just tell us you&apos;re
               coming. Phone is fastest.

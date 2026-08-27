@@ -128,10 +128,33 @@ Staff sign in at **`/admin/login`**. Customers use `/login`.
 | **Users** | Search by email, edit details, set roles |
 | **Messages** | Enquiries from the contact form |
 
-**Site looks empty?** That is expected on a fresh Firebase project — every page
-reads from Firestore. Hit **Load starter content** on the Overview page: it adds
-the original Somali menu (12 dishes, 3 categories) and 3 room types, which you
-then edit. It never overwrites anything that already exists.
+**Hotel page empty?** Rooms are the one thing that has no data yet. Hit **Add
+starter rooms** on the Overview and you get single, double and family types to
+edit. It refuses to run if any room already exists.
+
+### Your existing data
+
+The site reads the collections that were already in Firestore rather than
+migrating them:
+
+| Collection | Docs | Notes |
+|---|---|---|
+| `foodItems` | 131 | The menu. Keeps its imported shape — `name` is a `{ en, so }` map, timestamps are ISO strings, images point at Supabase |
+| `users` | — | Roles live here. Written by this app |
+| `user` | 1 | Legacy, from the previous app. Read-only, nothing writes to it |
+| `rooms`, `bookings`, `dateBlocks`, `messages` | — | New, created by this app |
+
+`src/lib/menu.ts` is the only file that knows the `foodItems` field shape;
+everything above it works with a tidy `MenuItem` type. Two things worth knowing:
+
+- **`section`** is the grouping the menu page uses — breakfast, lunch, dinner,
+  sides, drinks. **`category`** is the sub-type within it (`lunch-food`,
+  `hot-tea`, `juice`…). **`type`** is `"Normal"` on all 131 records — the import
+  never populated it, so nothing reads it.
+- **`name.so` is empty on most imported records.** The site leads with Somali,
+  so it falls back to the English name and drops the translation line rather
+  than rendering blank. Admin → Food & drink shows a running count of how many
+  still need a Somali name.
 
 ---
 
@@ -241,10 +264,14 @@ Permissions live in `src/lib/roles.ts` and are mirrored in `firestore.rules`.
 
 The direction is **Xarrago** — Somali for elegance or adornment.
 
-- **Palette** — Roasted `#17110C`, Bone `#F7F1E6`, Xawaash amber `#C8892F`,
-  Shaash indigo `#123A54`, Cilaan clay `#8C4A2F`, Ciid sand `#D9C9AE`. The
-  indigo counter-accent comes from Somali textile and the flag; it is what keeps
-  this off the generic cream-and-gold restaurant look every other site lands on.
+- **Palette — taken off the logo, not invented.** The mark is a deep
+  coffee-brown cup and cutlery with the KCC wordmark in bright red on white. So:
+  Qaxwo `#1C0B07` (dark ground), Bun `#4A1D14` (the cup brown), Guduud `#D91F16`
+  (the exact wordmark red), Caano `#FAF6F2` (the logo's own white), Ciid
+  `#D9C3B5` (tan). Every value was contrast-checked — body text clears 4.5:1 and
+  large text 3:1 in both themes.
+- **Red is the brand colour**, so destructive actions never rely on hue alone.
+  Delete and cancel always carry an icon and an explicit verb.
 - **Type** — Fraunces (display), Manrope (body), IBM Plex Mono (prices, codes,
   labels). Self-hosted via `next/font`; the old build pulled them from the Google
   CDN inside a `styled-jsx` block on every page.

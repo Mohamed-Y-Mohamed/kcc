@@ -25,10 +25,10 @@ const VARIANTS: Record<Variant, string> = {
   danger:
     "bg-transparent text-danger border border-danger/40 hover:bg-danger/10 hover:border-danger",
   // For the dark hero and deep bands, which stay dark in both themes. Passing
-  // `text-bone` as a className instead loses the cascade to the variant's own
+  // `text-caano` as a className instead loses the cascade to the variant's own
   // text colour and renders an invisible button.
   inverse:
-    "bg-transparent text-bone border border-bone/35 hover:border-xawaash hover:text-xawaash",
+    "bg-transparent text-caano border border-caano/35 hover:border-guduud hover:text-guduud",
 };
 
 // 44px minimum on md — the smallest reliable touch target.

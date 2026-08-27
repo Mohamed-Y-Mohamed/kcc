@@ -4,6 +4,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authErrorMessage, useAuth } from "@/context/AuthContext";
+import { hasDashboardAccess } from "@/lib/roles";
 import { AuthCard } from "@/components/site/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
@@ -11,12 +12,20 @@ import { ErrorNote } from "@/components/ui/Feedback";
 import { useToast } from "@/components/ui/Toast";
 
 function LoginForm() {
-  const { signIn, resetPassword, user, loading: authLoading } = useAuth();
+  const {
+    signIn,
+    resetPassword,
+    user,
+    isStaff,
+    loading: authLoading,
+  } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
   const { toast } = useToast();
 
-  const next = params.get("next") || "/account";
+  // An explicit ?next= always wins — it means they were sent here from a page
+  // they actually wanted.
+  const requested = params.get("next");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,8 +34,10 @@ function LoginForm() {
 
   // Already signed in? Don't make them look at a login form.
   useEffect(() => {
-    if (!authLoading && user) router.replace(next);
-  }, [authLoading, user, next, router]);
+    if (!authLoading && user) {
+      router.replace(requested || (isStaff ? "/admin" : "/account"));
+    }
+  }, [authLoading, user, isStaff, requested, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,8 +50,12 @@ function LoginForm() {
 
     setBusy(true);
     try {
-      await signIn(email, password);
-      router.replace(next);
+      const profile = await signIn(email, password);
+      // Staff go straight to the back office — they signed in to work, not to
+      // look at the menu.
+      router.replace(
+        requested || (hasDashboardAccess(profile.role) ? "/admin" : "/account")
+      );
     } catch (err) {
       setError(authErrorMessage(err));
     } finally {

@@ -7,12 +7,13 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BedDouble,
   CalendarCheck,
-  ExternalLink,
   LayoutDashboard,
   LogOut,
   Mail,
   Menu as MenuIcon,
   ShieldAlert,
+  Store,
+  UserRound,
   UtensilsCrossed,
   Users,
   X,
@@ -29,28 +30,50 @@ type IconProps = { className?: string; strokeWidth?: number };
 const NAV: {
   href: string;
   label: string;
+  labelSo: string;
   icon: React.ComponentType<IconProps>;
   exact?: boolean;
   capability?: Capability;
 }[] = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
+  {
+    href: "/admin",
+    label: "Overview",
+    labelSo: "Guudmar",
+    icon: LayoutDashboard,
+    exact: true,
+  },
   {
     href: "/admin/bookings",
     label: "Bookings",
+    labelSo: "Qabsasho",
     icon: CalendarCheck,
     capability: "manageBookings",
   },
-  { href: "/admin/rooms", label: "Rooms", icon: BedDouble, capability: "manageRooms" },
+  {
+    href: "/admin/rooms",
+    label: "Rooms",
+    labelSo: "Qolalka",
+    icon: BedDouble,
+    capability: "manageRooms",
+  },
   {
     href: "/admin/menu",
     label: "Food & drink",
+    labelSo: "Cunto & Cabitaan",
     icon: UtensilsCrossed,
     capability: "manageMenu",
   },
-  { href: "/admin/users", label: "Users", icon: Users, capability: "manageUsers" },
+  {
+    href: "/admin/users",
+    label: "Users",
+    labelSo: "Isticmaalayaal",
+    icon: Users,
+    capability: "manageUsers",
+  },
   {
     href: "/admin/messages",
     label: "Messages",
+    labelSo: "Fariimo",
     icon: Mail,
     capability: "manageMessages",
   },
@@ -95,38 +118,51 @@ export default function AdminLayout({
           <span className="relative h-8 w-8 overflow-hidden rounded-[3px]">
             <Image src="/logo.jpeg" alt="" fill sizes="32px" className="object-cover" />
           </span>
-          <span className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-bone">
+          <span className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-caano">
             KCC Admin
           </span>
         </Link>
-        <button
-          onClick={() => setNavOpen((v) => !v)}
-          aria-label={navOpen ? "Close menu" : "Open menu"}
-          aria-expanded={navOpen}
-          className="flex h-10 w-10 items-center justify-center text-bone"
-        >
-          {navOpen ? <X className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <Link
+            href="/"
+            aria-label="View customer site"
+            className="flex h-10 w-10 items-center justify-center text-guduud"
+          >
+            <Store className="h-5 w-5" />
+          </Link>
+          <button
+            onClick={() => setNavOpen((v) => !v)}
+            aria-label={navOpen ? "Close menu" : "Open menu"}
+            aria-expanded={navOpen}
+            className="flex h-10 w-10 items-center justify-center text-caano"
+          >
+            {navOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <MenuIcon className="h-5 w-5" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "flex-col justify-between bg-deep-solid text-bone lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0",
+          "flex-col justify-between bg-deep-solid text-caano lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0",
           navOpen ? "flex" : "hidden"
         )}
       >
         <div>
           <Link
             href="/admin"
-            className="hidden items-center gap-3 border-b border-bone/10 px-5 py-5 lg:flex"
+            className="hidden items-center gap-3 border-b border-caano/10 px-5 py-5 lg:flex"
           >
-            <span className="relative h-9 w-9 overflow-hidden rounded-[3px] border border-xawaash/40">
+            <span className="relative h-9 w-9 overflow-hidden rounded-[3px] border border-guduud/40">
               <Image src="/logo.jpeg" alt="" fill sizes="36px" className="object-cover" />
             </span>
             <span className="flex flex-col leading-none">
               <span className="font-display text-lg">KCC</span>
-              <span className="mt-1 font-mono text-[0.55rem] uppercase tracking-[0.2em] text-bone/50">
+              <span className="mt-1 font-mono text-[0.55rem] uppercase tracking-[0.2em] text-caano/50">
                 Back of house
               </span>
             </span>
@@ -143,50 +179,86 @@ export default function AdminLayout({
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-[2px] px-3 py-2.5 text-sm transition-colors",
+                    "flex items-center gap-3 rounded-[2px] px-3 py-2.5 transition-colors",
                     active
-                      ? "bg-xawaash text-roasted"
-                      : "text-bone/75 hover:bg-bone/10 hover:text-bone"
+                      ? // White on the brand red, not brown — brown-on-red is
+                        // only 3.8:1 and this is small text.
+                        "bg-guduud text-white"
+                      : "text-caano/75 hover:bg-caano/10 hover:text-caano"
                   )}
                 >
                   <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                  {item.label}
+                  <span className="flex min-w-0 flex-col leading-none">
+                    <span className="font-display text-[0.95rem]">
+                      {item.labelSo}
+                    </span>
+                    <span
+                      className={cn(
+                        "mt-1 font-mono text-[0.55rem] uppercase tracking-[0.16em]",
+                        active ? "text-white/75" : "opacity-60"
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </span>
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        <div className="border-t border-bone/10 p-3">
-          <div className="flex flex-col gap-2 px-3 py-2">
-            <p className="truncate font-mono text-[0.6rem] uppercase tracking-[0.14em] text-bone/45">
+        <div className="border-t border-caano/10 p-3">
+          {/* The way back to the customer side. Staff land in here on sign-in,
+              so this needs to be obvious rather than a quiet link. */}
+          <Link
+            href="/"
+            className="flex items-center gap-3 rounded-[2px] border border-guduud/60 px-3 py-2.5 text-[#ff6152] transition-colors hover:bg-guduud hover:text-white"
+          >
+            <Store className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-[0.95rem]">
+                Eeg bogga macmiilka
+              </span>
+              <span className="mt-1 font-mono text-[0.55rem] uppercase tracking-[0.16em] opacity-70">
+                View customer site
+              </span>
+            </span>
+          </Link>
+
+          <div className="mt-3 flex flex-col gap-2 border-t border-caano/10 px-3 pt-3">
+            <p className="truncate text-sm text-caano/80">
               {profile?.displayName || user.email}
             </p>
             <RoleBadge role={role} />
           </div>
+
           <Link
             href="/account"
-            className="flex items-center gap-3 rounded-[2px] px-3 py-2.5 text-sm text-bone/75 transition-colors hover:bg-bone/10 hover:text-bone"
+            className="mt-1 flex items-center gap-3 rounded-[2px] px-3 py-2.5 text-caano/75 transition-colors hover:bg-caano/10 hover:text-caano"
           >
-            <Users className="h-4 w-4" strokeWidth={1.75} />
-            My account
+            <UserRound className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            <span className="flex flex-col leading-none">
+              <span className="text-sm">Akoonkayga</span>
+              <span className="mt-1 font-mono text-[0.55rem] uppercase tracking-[0.16em] opacity-60">
+                My account
+              </span>
+            </span>
           </Link>
-          <Link
-            href="/"
-            className="flex items-center gap-3 rounded-[2px] px-3 py-2.5 text-sm text-bone/75 transition-colors hover:bg-bone/10 hover:text-bone"
-          >
-            <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
-            View the site
-          </Link>
+
           <button
             onClick={async () => {
               await signOutUser();
               router.push("/");
             }}
-            className="flex w-full items-center gap-3 rounded-[2px] px-3 py-2.5 text-left text-sm text-bone/75 transition-colors hover:bg-bone/10 hover:text-bone"
+            className="flex w-full items-center gap-3 rounded-[2px] px-3 py-2.5 text-left text-caano/75 transition-colors hover:bg-caano/10 hover:text-caano"
           >
-            <LogOut className="h-4 w-4" strokeWidth={1.75} />
-            Sign out
+            <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            <span className="flex flex-col leading-none">
+              <span className="text-sm">Ka bax</span>
+              <span className="mt-1 font-mono text-[0.55rem] uppercase tracking-[0.16em] opacity-60">
+                Sign out
+              </span>
+            </span>
           </button>
         </div>
       </aside>

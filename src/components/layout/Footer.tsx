@@ -21,15 +21,15 @@ const ACCOUNT_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-roasted text-bone">
-      <XawaashRule className="text-xawaash/70" />
+    <footer className="bg-qaxwo text-caano">
+      <XawaashRule className="text-guduud/70" />
 
       <Container size="wide">
         <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* Identity */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <span className="relative h-11 w-11 overflow-hidden rounded-[3px] border border-xawaash/40">
+              <span className="relative h-11 w-11 overflow-hidden rounded-[3px] border border-guduud/40">
                 <Image
                   src="/logo.jpeg"
                   alt=""
@@ -56,16 +56,16 @@ export default function Footer() {
 
           {/* Visit */}
           <div className="flex flex-col gap-4">
-            <h3 className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-xawaash">
+            <h3 className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-guduud">
               Nagu soo booqo · Visit
             </h3>
             <a
               href={SITE.address.mapsUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex items-start gap-2.5 text-sm text-ciid/85 transition-colors hover:text-bone"
+              className="flex items-start gap-2.5 text-sm text-ciid/85 transition-colors hover:text-caano"
             >
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-xawaash" />
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-guduud" />
               <span>
                 {SITE.address.street}
                 <br />
@@ -74,13 +74,13 @@ export default function Footer() {
             </a>
             <a
               href={`tel:${SITE.phone.e164}`}
-              className="flex items-start gap-2.5 text-sm text-ciid/85 transition-colors hover:text-bone"
+              className="flex items-start gap-2.5 text-sm text-ciid/85 transition-colors hover:text-caano"
             >
-              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-xawaash" />
+              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-guduud" />
               <span className="tnum">{SITE.phone.display}</span>
             </a>
             <div className="flex items-start gap-2.5 text-sm text-ciid/85">
-              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-xawaash" />
+              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-guduud" />
               <span>
                 {SITE.hours.en}
                 <span className="block text-xs text-ciid/60">
@@ -92,7 +92,7 @@ export default function Footer() {
 
           {/* Pages */}
           <nav className="flex flex-col gap-4" aria-label="Footer">
-            <h3 className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-xawaash">
+            <h3 className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-guduud">
               Bogagga · Pages
             </h3>
             <ul className="flex flex-col gap-2.5">
@@ -100,7 +100,7 @@ export default function Footer() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="flex items-baseline justify-between gap-3 text-sm text-ciid/85 transition-colors hover:text-xawaash"
+                    className="flex items-baseline justify-between gap-3 text-sm text-ciid/85 transition-colors hover:text-guduud"
                   >
                     <span className="font-display">{l.so}</span>
                     <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ciid/45">
@@ -114,7 +114,7 @@ export default function Footer() {
 
           {/* Account + social */}
           <div className="flex flex-col gap-4">
-            <h3 className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-xawaash">
+            <h3 className="font-mono text-[0.65rem] uppercase tracking-[0.24em] text-guduud">
               Akoonkaaga · Account
             </h3>
             <ul className="flex flex-col gap-2.5">
@@ -122,7 +122,7 @@ export default function Footer() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="text-sm text-ciid/85 transition-colors hover:text-xawaash"
+                    className="text-sm text-ciid/85 transition-colors hover:text-guduud"
                   >
                     {l.label}
                   </Link>
@@ -137,7 +137,7 @@ export default function Footer() {
                   href={s.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-[2px] border border-ciid/25 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-ciid/75 transition-colors hover:border-xawaash hover:text-xawaash"
+                  className="rounded-[2px] border border-ciid/25 px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-ciid/75 transition-colors hover:border-guduud hover:text-guduud"
                 >
                   {s.label}
                 </a>
@@ -148,7 +148,7 @@ export default function Footer() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-flex w-fit items-center rounded-[2px] bg-xawaash px-3.5 py-2 text-sm font-medium text-roasted transition-[filter] hover:brightness-110"
+              className="mt-1 inline-flex w-fit items-center rounded-[2px] bg-guduud px-3.5 py-2 text-sm font-medium text-qaxwo transition-[filter] hover:brightness-110"
             >
               Message us on WhatsApp
             </a>

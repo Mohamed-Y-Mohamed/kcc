@@ -84,22 +84,22 @@ export default function HotelPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate overflow-hidden bg-roasted text-bone">
+      <section className="relative isolate overflow-hidden bg-qaxwo text-caano">
         <div className="woven absolute inset-0 opacity-50" aria-hidden />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-roasted via-roasted/95 to-shaash/50"
+          className="absolute inset-0 bg-gradient-to-br from-qaxwo via-qaxwo/95 to-bun/50"
           aria-hidden
         />
         <Container className="relative">
           <div className="max-w-2xl py-24 sm:py-32">
-            <p className="eyebrow text-xawaash">Hoteelka KCC</p>
-            <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.98] text-bone">
+            <p className="eyebrow text-guduud">Hoteelka KCC</p>
+            <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.98] text-caano">
               Qol lagu seexdo
             </h1>
             <p className="mt-4 font-mono text-[0.7rem] uppercase tracking-[0.24em] text-ciid/70">
               A room for the night
             </p>
-            <XawaashRule className="mt-5 max-w-xs text-xawaash" />
+            <XawaashRule className="mt-5 max-w-xs text-guduud" />
             <p className="mt-6 max-w-lg text-base leading-relaxed text-ciid/85">
               Rooms above the cafe on {SITE.address.street}. Pick your dates,
               choose a room, and you&apos;re done — no account needed.

@@ -13,7 +13,7 @@ import {
   Play,
   UtensilsCrossed,
 } from "lucide-react";
-import { listMenuItems } from "@/lib/menu";
+import { itemNames, listMenuItems } from "@/lib/menu";
 import { listActiveRooms } from "@/lib/rooms";
 import { formatPrice } from "@/lib/format";
 import { SITE } from "@/lib/site";
@@ -69,7 +69,7 @@ export default function LandingPage() {
   // The board shows what the kitchen is proudest of, falling back to whatever
   // exists so it never renders an empty frame.
   const board = (items ?? [])
-    .filter((i) => i.available)
+    .filter((i) => i.isActive)
     .sort(
       (a, b) =>
         Number(b.signature) - Number(a.signature) ||
@@ -213,10 +213,10 @@ export default function LandingPage() {
 
 function Hero({ board, loading }: { board: MenuItem[]; loading: boolean }) {
   return (
-    <section className="relative isolate overflow-hidden bg-roasted text-bone">
+    <section className="relative isolate overflow-hidden bg-qaxwo text-caano">
       <div className="woven absolute inset-0 opacity-60" aria-hidden />
       <div
-        className="absolute inset-0 bg-gradient-to-br from-roasted via-roasted/95 to-shaash/40"
+        className="absolute inset-0 bg-gradient-to-br from-qaxwo via-qaxwo/95 to-bun/40"
         aria-hidden
       />
 
@@ -224,11 +224,11 @@ function Hero({ board, loading }: { board: MenuItem[]; loading: boolean }) {
         <div className="grid items-center gap-14 py-32 sm:py-40 lg:grid-cols-12 lg:gap-12 lg:py-44">
           {/* Statement */}
           <div className="flex flex-col gap-6 lg:col-span-7">
-            <p className="rise font-mono text-[0.7rem] uppercase tracking-[0.28em] text-xawaash">
+            <p className="rise font-mono text-[0.7rem] uppercase tracking-[0.28em] text-guduud">
               {SITE.address.street} · {SITE.address.city} · {SITE.address.country}
             </p>
 
-            <h1 className="rise rise-1 font-display text-[clamp(2.75rem,8vw,5.5rem)] leading-[0.95] tracking-[-0.03em] text-bone">
+            <h1 className="rise rise-1 font-display text-[clamp(2.75rem,8vw,5.5rem)] leading-[0.95] tracking-[-0.03em] text-caano">
               Qaxwo, cunto,
               <br />
               iyo qol.
@@ -238,7 +238,7 @@ function Hero({ board, loading }: { board: MenuItem[]; loading: boolean }) {
               Coffee. A kitchen. A room for the night.
             </p>
 
-            <XawaashRule className="rise rise-2 max-w-xs text-xawaash" />
+            <XawaashRule className="rise rise-2 max-w-xs text-guduud" />
 
             <p className="rise rise-3 max-w-md text-base leading-relaxed text-ciid/85">
               We roast the beans here, cook the rice here, and keep rooms upstairs
@@ -262,12 +262,12 @@ function Hero({ board, loading }: { board: MenuItem[]; loading: boolean }) {
 
             <dl className="rise rise-4 mt-4 flex flex-wrap gap-x-8 gap-y-3 border-t border-ciid/15 pt-5 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-ciid/65">
               <div className="flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 text-xawaash" aria-hidden />
+                <Clock className="h-3.5 w-3.5 text-guduud" aria-hidden />
                 <dt className="sr-only">Opening hours</dt>
                 <dd>{SITE.hours.en}</dd>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="h-3.5 w-3.5 text-xawaash" aria-hidden />
+                <Phone className="h-3.5 w-3.5 text-guduud" aria-hidden />
                 <dt className="sr-only">Phone</dt>
                 <dd className="tnum">{SITE.phone.display}</dd>
               </div>
@@ -276,9 +276,9 @@ function Hero({ board, loading }: { board: MenuItem[]; loading: boolean }) {
 
           {/* The board — what the kitchen is proudest of today */}
           <div className="rise rise-2 lg:col-span-5">
-            <div className="border border-ciid/20 bg-roasted/60 backdrop-blur-sm">
+            <div className="border border-ciid/20 bg-qaxwo/60 backdrop-blur-sm">
               <div className="flex items-baseline justify-between border-b border-ciid/20 px-6 py-4">
-                <h2 className="font-display text-xl text-bone">Maanta</h2>
+                <h2 className="font-display text-xl text-caano">Maanta</h2>
                 <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-ciid/55">
                   On the board
                 </span>
@@ -288,7 +288,7 @@ function Hero({ board, loading }: { board: MenuItem[]; loading: boolean }) {
                 {loading ? (
                   <ul className="flex flex-col gap-4 py-4">
                     {[0, 1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-9 w-full bg-ciid/10" />
+                      <Skeleton key={i} tone="inverse" className="h-9 w-full" />
                     ))}
                   </ul>
                 ) : board.length === 0 ? (
@@ -297,32 +297,37 @@ function Hero({ board, loading }: { board: MenuItem[]; loading: boolean }) {
                   </p>
                 ) : (
                   <ul className="divide-y divide-ciid/12">
-                    {board.map((item) => (
-                      <li key={item.id} className="py-3.5">
-                        <div className="leader">
-                          <span className="font-display text-base text-bone">
-                            {item.nameSo}
-                          </span>
-                          <span
-                            className="leader-fill !border-ciid/30"
-                            aria-hidden
-                          />
-                          <span className="tnum shrink-0 text-sm text-xawaash">
-                            {formatPrice(item.price)}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ciid/45">
-                          {item.nameEn}
-                        </p>
-                      </li>
-                    ))}
+                    {board.map((item) => {
+                      const name = itemNames(item);
+                      return (
+                        <li key={item.id} className="py-3.5">
+                          <div className="leader">
+                            <span className="font-display text-base text-caano">
+                              {name.lead}
+                            </span>
+                            <span
+                              className="leader-fill !border-ciid/30"
+                              aria-hidden
+                            />
+                            <span className="tnum shrink-0 text-sm text-guduud">
+                              {formatPrice(item.price)}
+                            </span>
+                          </div>
+                          {name.sub && (
+                            <p className="mt-0.5 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ciid/45">
+                              {name.sub}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
 
               <Link
                 href="/menu"
-                className="flex items-center justify-between border-t border-ciid/20 px-6 py-4 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-xawaash transition-colors hover:bg-ciid/5"
+                className="flex items-center justify-between border-t border-ciid/20 px-6 py-4 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-guduud transition-colors hover:bg-ciid/5"
               >
                 Full menu
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -362,7 +367,7 @@ function VideoPanel() {
           align="center"
         />
 
-        <div className="relative mt-12 overflow-hidden border border-line bg-roasted">
+        <div className="relative mt-12 overflow-hidden border border-line bg-qaxwo">
           <div className="aspect-video w-full">
             {playing ? (
               <video
@@ -387,9 +392,9 @@ function VideoPanel() {
                   className="object-cover opacity-25"
                 />
                 <span className="relative flex flex-col items-center gap-4">
-                  <span className="flex h-16 w-16 items-center justify-center rounded-full border border-xawaash/60 bg-roasted/70 transition-transform duration-300 group-hover:scale-110">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full border border-guduud/60 bg-qaxwo/70 transition-transform duration-300 group-hover:scale-110">
                     <Play
-                      className="ml-1 h-6 w-6 text-xawaash"
+                      className="ml-1 h-6 w-6 text-guduud"
                       fill="currentColor"
                     />
                   </span>
@@ -414,20 +419,20 @@ function VisitPanel() {
       <Container>
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
           <div className="flex flex-col gap-5">
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.28em] text-xawaash">
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.28em] text-guduud">
               Nagu soo booqo
             </p>
             <h2 className="font-display text-4xl leading-[1.05] sm:text-5xl">
               Halkan ayaan joognaa
             </h2>
-            <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] text-bone/60">
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] text-caano/60">
               This is where we are
             </p>
-            <XawaashRule width="short" className="text-xawaash" />
+            <XawaashRule width="short" className="text-guduud" />
 
             <ul className="mt-2 flex flex-col gap-4 text-sm">
               <li className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-xawaash" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-guduud" />
                 <a
                   href={SITE.address.mapsUrl}
                   target="_blank"
@@ -438,7 +443,7 @@ function VisitPanel() {
                 </a>
               </li>
               <li className="flex items-start gap-3">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-xawaash" />
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-guduud" />
                 <a
                   href={`tel:${SITE.phone.e164}`}
                   className="tnum underline-offset-4 hover:underline"
@@ -447,10 +452,10 @@ function VisitPanel() {
                 </a>
               </li>
               <li className="flex items-start gap-3">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-xawaash" />
+                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-guduud" />
                 <span>
                   {SITE.hours.en}
-                  <span className="block text-bone/60">
+                  <span className="block text-caano/60">
                     {SITE.hours.daysSo} · {SITE.hours.daysEn}
                   </span>
                 </span>
@@ -471,7 +476,7 @@ function VisitPanel() {
             </div>
           </div>
 
-          <div className="overflow-hidden border border-bone/20">
+          <div className="overflow-hidden border border-caano/20">
             <iframe
               title="Map showing KCC on Argo Street, Golol"
               src={`https://maps.google.com/maps?q=${encodeURIComponent(

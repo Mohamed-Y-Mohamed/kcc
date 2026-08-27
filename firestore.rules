@@ -1,0 +1,277 @@
+rules_version = '2';
+
+// =============================================================================
+// KCC — Firestore security rules
+//
+// The app talks to Firestore directly from the browser, so THESE RULES ARE THE
+// SERVER. Anything not granted here is denied. Nothing in the React code is a
+// security control — it is all UX.
+//
+// Roles:  owner > admin > manager > staff > user
+//   owner    everything, and the only one who can appoint admins and managers
+//   admin    rooms, menu, bookings, messages; may appoint staff
+//   manager  rooms, menu, bookings, messages; may appoint staff
+//   staff    bookings and messages only
+//   user     an ordinary customer
+//
+// Deploy with:  firebase deploy --only firestore:rules
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- owner
+    //
+    // The owner is pinned to an email address rather than to a database field,
+    // so the top of the hierarchy cannot be edited away by anyone with access
+    // to the users collection — including a rogue admin.
+    //
+    // Keep this in step with OWNER_EMAIL in src/lib/roles.ts.
+
+    function ownerEmail() {
+      return 'theking19942010@gmail.com';
+    }
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnerEmail() {
+      return signedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == ownerEmail();
+    }
+
+    // --------------------------------------------------------------- helpers
+
+    function storedRole() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : 'user';
+    }
+
+    // The owner's role is derived from their email, so it holds even if their
+    // user document is missing or has been tampered with.
+    function myRole() {
+      return isOwnerEmail() ? 'owner' : (signedIn() ? storedRole() : 'user');
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function canManageContent() {
+      return myRole() in ['owner', 'admin', 'manager'];
+    }
+
+    function canManageBookings() {
+      return myRole() in ['owner', 'admin', 'manager', 'staff'];
+    }
+
+    function canManageMessages() {
+      return myRole() in ['owner', 'admin', 'manager', 'staff'];
+    }
+
+    function canManageUsers() {
+      return myRole() in ['owner', 'admin', 'manager'];
+    }
+
+    // Who each role may appoint. Only the owner can mint an admin or a manager;
+    // admins and managers top out at staff.
+    function assignableRoles() {
+      return myRole() == 'owner'
+        ? ['admin', 'manager', 'staff', 'user']
+        : (myRole() in ['admin', 'manager'] ? ['staff', 'user'] : []);
+    }
+
+    function onlyKeys(allowed) {
+      return request.resource.data.keys().hasOnly(allowed);
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function isShortString(value, max) {
+      return value is string && value.size() > 0 && value.size() <= max;
+    }
+
+    function isDate(value) {
+      return value is string && value.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    // ---------------------------------------------------------------- users
+
+    match /users/{uid} {
+      allow get: if isOwner(uid) || canManageUsers();
+      allow list: if canManageUsers();
+
+      allow create: if isOwner(uid)
+        && onlyKeys(['email', 'displayName', 'phone', 'role', 'createdAt'])
+        && request.resource.data.email == request.auth.token.email
+        // Self-registration is a plain customer — unless this is the pinned
+        // owner address, which claims 'owner' on first sign-in.
+        && request.resource.data.role == (isOwnerEmail() ? 'owner' : 'user');
+
+      allow update: if
+        // (a) Editing yourself: name and phone only, role untouched. The owner
+        //     account may additionally re-assert its own 'owner' role.
+        (isOwner(uid)
+          && onlyKeys(['email', 'displayName', 'phone', 'role', 'createdAt'])
+          && (request.resource.data.role == resource.data.role
+              || (isOwnerEmail() && request.resource.data.role == 'owner')))
+
+        // (b) A user manager editing someone else. Both the role they have now
+        //     and the role they are being given must be within reach — that is
+        //     what stops a manager demoting an admin, or promoting themselves
+        //     sideways into one.
+        || (canManageUsers()
+            && !isOwner(uid)
+            && resource.data.role != 'owner'
+            && resource.data.email.lower() != ownerEmail()
+            && onlyKeys(['email', 'displayName', 'phone', 'role', 'createdAt'])
+            && changedKeys().hasOnly(['displayName', 'phone', 'role'])
+            && resource.data.role in assignableRoles()
+            && request.resource.data.role in assignableRoles());
+
+      // Deleting an account is the owner's call alone.
+      allow delete: if myRole() == 'owner' && resource.data.role != 'owner';
+    }
+
+    // ------------------------------------------------- menu, categories, rooms
+    //
+    // Public reading is the point — these are the shop window.
+
+    match /menuCategories/{id} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
+    match /menuItems/{id} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
+    match /rooms/{id} {
+      allow read: if true;
+      allow write: if canManageContent();
+    }
+
+    // ----------------------------------------------------------- dateBlocks
+    //
+    // A PII-free mirror of each booking's dates, so anyone — including a guest
+    // with no account — can check availability without being able to read other
+    // people's names, emails and phone numbers.
+    //
+    // getAfter() inspects the state at the end of the batch, so a block can only
+    // be created alongside its own booking. That stops someone spamming fake
+    // blocks to make the hotel look full.
+
+    match /dateBlocks/{blockId} {
+      allow read: if true;
+
+      allow create: if onlyKeys(['roomId', 'checkIn', 'checkOut', 'status'])
+        && request.resource.data.status == 'pending'
+        && getAfter(/databases/$(database)/documents/bookings/$(blockId)).data.roomId
+             == request.resource.data.roomId
+        && getAfter(/databases/$(database)/documents/bookings/$(blockId)).data.checkIn
+             == request.resource.data.checkIn
+        && getAfter(/databases/$(database)/documents/bookings/$(blockId)).data.checkOut
+             == request.resource.data.checkOut;
+
+      // Mirrors a guest cancelling their own booking, so the room frees up in
+      // everyone else's availability check.
+      allow update: if canManageBookings()
+        || (signedIn()
+            && get(/databases/$(database)/documents/bookings/$(blockId)).data.userId
+                 == request.auth.uid
+            && request.resource.data.status == 'cancelled'
+            && changedKeys().hasOnly(['status']));
+
+      allow delete: if canManageBookings();
+    }
+
+    // ------------------------------------------------------------- bookings
+    //
+    // Anyone may create one — guests book without an account — but the server
+    // pins the shape: always 'pending', the nightly rate must match the room's
+    // actual price, and you cannot attach a booking to somebody else's account.
+
+    function validBooking() {
+      let d = request.resource.data;
+      return onlyKeys([
+               'id', 'code', 'roomId', 'roomName',
+               'guestName', 'guestEmail', 'guestPhone',
+               'checkIn', 'checkOut', 'nights', 'guests',
+               'pricePerNight', 'total', 'status', 'userId', 'notes',
+               'createdAt', 'updatedAt'
+             ])
+        && d.status == 'pending'
+        && isShortString(d.guestName, 120)
+        && isShortString(d.guestEmail, 200)
+        && isShortString(d.guestPhone, 40)
+        && d.notes is string && d.notes.size() <= 2000
+        && isDate(d.checkIn) && isDate(d.checkOut)
+        && d.checkIn < d.checkOut
+        && d.nights is int && d.nights > 0 && d.nights <= 90
+        && d.guests is int && d.guests > 0 && d.guests <= 20
+        && d.pricePerNight is number && d.pricePerNight >= 0
+        // The price is not the client's to invent.
+        && d.total == d.nights * d.pricePerNight
+        && exists(/databases/$(database)/documents/rooms/$(d.roomId))
+        && d.pricePerNight
+             == get(/databases/$(database)/documents/rooms/$(d.roomId)).data.pricePerNight
+        && (d.userId == null || (signedIn() && d.userId == request.auth.uid));
+    }
+
+    match /bookings/{id} {
+      allow get: if canManageBookings()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+      // Firestore validates a list query against this rule, so
+      // where('userId','==',uid) succeeds and an unfiltered list does not.
+      allow list: if canManageBookings()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if validBooking();
+
+      // Staff revise and cancel on a guest's behalf. A guest may cancel their
+      // own upcoming stay and nothing else — the affectedKeys() check is what
+      // stops someone "cancelling" their way into editing dates or the price.
+      allow update: if canManageBookings()
+        || (signedIn()
+            && resource.data.userId == request.auth.uid
+            && resource.data.status in ['pending', 'confirmed']
+            && request.resource.data.status == 'cancelled'
+            && changedKeys().hasOnly(['status', 'updatedAt']));
+
+      allow delete: if myRole() in ['owner', 'admin'];
+    }
+
+    // ------------------------------------------------------------- messages
+
+    match /messages/{id} {
+      allow read: if canManageMessages();
+
+      allow create: if onlyKeys([
+               'name', 'email', 'phone', 'partySize',
+               'date', 'time', 'occasion', 'message',
+               'status', 'createdAt'
+             ])
+        && request.resource.data.status == 'new'
+        && isShortString(request.resource.data.name, 120)
+        && isShortString(request.resource.data.email, 200)
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() <= 40
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 4000
+        && request.resource.data.partySize is int
+        && request.resource.data.partySize >= 0
+        && request.resource.data.partySize <= 500;
+
+      allow update: if canManageMessages();
+      allow delete: if canManageMessages();
+    }
+
+    // Anything not matched above is denied.
+  }
+}

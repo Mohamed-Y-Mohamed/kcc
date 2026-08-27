@@ -1,1050 +1,347 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import {
-  MapPin,
-  Phone,
-  Clock,
-  Mail,
-  Users,
-  ArrowRight,
-  Star,
-  Award,
-  Heart,
-  ExternalLink,
-} from "lucide-react";
-import { useTheme } from "@/context/ThemeContext";
-import "@/app/globals.css"; // or your correct path
 
-const LuxuryContactPage = () => {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-  const mapRef = useRef<HTMLDivElement>(null);
+import React, { useEffect, useState } from "react";
+import { CheckCircle2, Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { sendMessage } from "@/lib/messages";
+import { useAuth } from "@/context/AuthContext";
+import { SITE, WHATSAPP_URL } from "@/lib/site";
+import { todayISO } from "@/lib/format";
+import { Container, Section, SectionHeading } from "@/components/ui/Section";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Input, Select, Textarea } from "@/components/ui/Field";
+import { ErrorNote } from "@/components/ui/Feedback";
+import { XawaashRule } from "@/components/ui/XawaashRule";
+import { useToast } from "@/components/ui/Toast";
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+const OCCASIONS = [
+  { value: "Table for a meal", label: "Table for a meal" },
+  { value: "Birthday", label: "Birthday" },
+  { value: "Family gathering", label: "Family gathering" },
+  { value: "Business meeting", label: "Business meeting" },
+  { value: "Large group", label: "Large group" },
+  { value: "Something else", label: "Something else" },
+];
+
+const TIMES = [
+  "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00",
+  "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00",
+];
+
+export default function ContactPage() {
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+
+  const [form, setForm] = useState({
+    name: "",
     email: "",
     phone: "",
+    partySize: "2",
     date: "",
-    time: "",
-    partySize: "",
-    specialRequests: "",
-    occasion: "",
+    time: "19:00",
+    occasion: OCCASIONS[0].value,
+    message: "",
   });
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState("");
-
-  // Restaurant coordinates (Approximate for Somalia)
-
-  // Initialize Interactive Map with multiple fallback options
   useEffect(() => {
-    const initializeMap = () => {
-      if (mapRef.current) {
-        // Create interactive map with embedded Google Maps
-        mapRef.current.innerHTML = `
-          <div style="width: 100%; height: 500px; position: relative; border-radius: 24px; overflow: hidden;">
-            <!-- Primary Map: Embedded Google Maps -->
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15894.849186839745!2d45.318!3d2.047!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMsKwMDInNDguOCJOIDQ1wrAxOSczMC4wIkU!5e0!3m2!1sen!2sso!4v1640995200000!5m2!1sen!2sso&q=Argo+Street+Golol+Somalia"
-              width="100%"
-              height="500"
-              style="border: 0; border-radius: 24px; ${
-                isDark ? "filter: invert(0.9) hue-rotate(180deg);" : ""
-              }"
-              allowfullscreen=""
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
-            
-            <!-- Overlay with restaurant info -->
-            <div style="
-              position: absolute;
-              top: 20px;
-              left: 20px;
-              background: ${
-                isDark ? "rgba(23, 23, 23, 0.95)" : "rgba(255, 255, 255, 0.95)"
-              };
-              padding: 20px;
-              border-radius: 16px;
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-              backdrop-filter: blur(20px);
-              border: 1px solid ${
-                isDark ? "rgba(212, 175, 55, 0.3)" : "rgba(212, 175, 55, 0.2)"
-              };
-              z-index: 10;
-              max-width: 300px;
-            ">
-              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="
-                  width: 40px;
-                  height: 40px;
-                  background: linear-gradient(135deg, #d4af37, #e5c164);
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                ">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                </div>
-                <div>
-                  <h3 style="
-                    margin: 0;
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: ${isDark ? "#ffffff" : "#1c1c1c"};
-                    font-family: 'Playfair Display', serif;
-                  ">
-                    KCC Cafe, Restaurant and Hotel
-                  </h3>
-                  <p style="
-                    margin: 0;
-                    font-size: 12px;
-                    color: #d4af37;
-                    font-weight: 600;
-                  ">
-                    Argo Street, Golol
-                  </p>
-                </div>
-              </div>
-              
-              <div style="margin-bottom: 16px;">
-                <p style="
-                  margin: 0 0 4px 0;
-                  font-size: 14px;
-                  color: ${isDark ? "#e5e5e5" : "#374151"};
-                  font-family: 'Inter', sans-serif;
-                ">
-                  📍 <strong>Argo Street, Golol, Somalia</strong>
-                </p>
-                <p style="
-                  margin: 0 0 4px 0;
-                  font-size: 14px;
-                  color: ${isDark ? "#d1d5db" : "#6b7280"};
-                  font-family: 'Inter', sans-serif;
-                ">
-                  🕒 Open: 8:00 AM - 11:00 PM Daily
-                </p>
-                <p style="
-                  margin: 0;
-                  font-size: 14px;
-                  color: ${isDark ? "#d1d5db" : "#6b7280"};
-                  font-family: 'Inter', sans-serif;
-                ">
-                  📞 +252 61 067 3194
-                </p>
-              </div>
-              
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <a 
-                  href="https://www.google.com/maps/search/Argo+Street,+Golol,+Somalia/@2.0469,45.3182,15z"
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  style="
-                    background: linear-gradient(135deg, #d4af37, #e5c164);
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    text-decoration: none;
-                    font-size: 12px;
-                    font-weight: 600;
-                    font-family: 'Inter', sans-serif;
-                    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
-                    transition: all 0.3s ease;
-                  "
-                  onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(212, 175, 55, 0.4)';"
-                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(212, 175, 55, 0.3)';"
-                >
-                  🗺️ Get Directions
-                </a>
-                
-                <a 
-                  href="tel:+252610673194" 
-                  style="
-                    background: ${
-                      isDark
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "rgba(28, 28, 28, 0.1)"
-                    };
-                    color: ${isDark ? "#ffffff" : "#1c1c1c"};
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    text-decoration: none;
-                    font-size: 12px;
-                    font-weight: 600;
-                    font-family: 'Inter', sans-serif;
-                    border: 1px solid ${
-                      isDark
-                        ? "rgba(255, 255, 255, 0.2)"
-                        : "rgba(28, 28, 28, 0.2)"
-                    };
-                    transition: all 0.3s ease;
-                  "
-                  onmouseover="this.style.background='${
-                    isDark
-                      ? "rgba(255, 255, 255, 0.2)"
-                      : "rgba(28, 28, 28, 0.2)"
-                  }'; this.style.transform='translateY(-2px)';"
-                  onmouseout="this.style.background='${
-                    isDark
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(28, 28, 28, 0.1)"
-                  }'; this.style.transform='translateY(0)';"
-                >
-                  📞 Call Now
-                </a>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-    };
+    if (!user && !profile) return;
+    setForm((f) => ({
+      ...f,
+      name: f.name || profile?.displayName || "",
+      email: f.email || user?.email || "",
+      phone: f.phone || profile?.phone || "",
+    }));
+  }, [user, profile]);
 
-    initializeMap();
-  }, [isDark]);
+  function set(key: keyof typeof form, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
 
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
 
-  const handleSubmit = async () => {
-    // Basic validation
-    if (
-      !formData.firstName ||
-      !formData.lastName ||
-      !formData.email ||
-      !formData.date ||
-      !formData.time ||
-      !formData.partySize
-    ) {
-      alert("Please fill in all required fields");
+    if (!form.name.trim()) {
+      setError("We need a name to put the table under.");
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
+      setError("Add an email address so we can reply.");
+      return;
+    }
+    if (form.phone.trim().length < 6) {
+      setError("Add a phone number — it's the quickest way to reach you.");
       return;
     }
 
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitStatus("success");
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        date: "",
-        time: "",
-        partySize: "",
-        specialRequests: "",
-        occasion: "",
+    setBusy(true);
+    try {
+      await sendMessage({
+        name: form.name.trim(),
+        email: form.email,
+        phone: form.phone.trim(),
+        partySize: Number(form.partySize) || 0,
+        date: form.date,
+        time: form.time,
+        occasion: form.occasion,
+        message: form.message.trim(),
       });
-    }, 2000);
-  };
-
-  const contactInfo = [
-    {
-      icon: MapPin,
-      titleSo: "Ciwaanka",
-      titleEn: "Address",
-      infoSo: "Argo Street, Golol, Somalia",
-      infoEn: "Argo Street, Golol, Somalia",
-      link: "https://www.google.com/maps/search/Argo+Street,+Golol,+Somalia/@2.0469,45.3182,15z",
-    },
-    {
-      icon: Phone,
-      titleSo: "Telefoon",
-      titleEn: "Phone",
-      infoSo: "+252610673194",
-      infoEn: "WhatsApp Available",
-      link: "tel:+252610673194",
-    },
-    {
-      icon: Mail,
-      titleSo: "Email",
-      titleEn: "Email",
-      infoSo: "112@kcccoffee&restaurant.com",
-      infoEn: "112@kcccoffee&restaurant.com",
-      link: "mailto:112@kcccoffee&restaurant.com",
-    },
-    {
-      icon: Clock,
-      titleSo: "Saacadaha Furmida",
-      titleEn: "Opening Hours",
-      infoSo: "8:00 AM - 11:00 PM",
-      infoEn: "Daily (Maalin kasta)",
-      link: null,
-    },
-  ];
-
-  const occasions = [
-    { value: "birthday", label: "Birthday Celebration", labelSo: "Dhalasho" },
-    { value: "anniversary", label: "Anniversary", labelSo: "Xuska Guurka" },
-    { value: "business", label: "Business Meeting", labelSo: "Shirkad" },
-    { value: "family", label: "Family Gathering", labelSo: "Kullan Qoys" },
-    { value: "date", label: "Romantic Dinner", labelSo: "Casho Jacayl" },
-    { value: "other", label: "Other", labelSo: "Kale" },
-  ];
-
-  const timeSlots = [
-    "8:00 AM",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-    "5:00 PM",
-    "6:00 PM",
-    "7:00 PM",
-    "8:00 PM",
-    "9:00 PM",
-    "10:00 PM",
-  ];
+      setSent(true);
+      toast("Message sent. We'll get back to you.", "success");
+    } catch (err) {
+      console.error(err);
+      setError(
+        `Couldn't send that. Call us on ${SITE.phone.display} and we'll sort it.`
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
-    <div
-      className={`min-h-screen overflow-x-hidden transition-all duration-700 ease-in-out ${
-        isDark ? "bg-neutral-950" : "bg-stone-50"
-      }`}
-    >
-      <style jsx>
-        {`
-          .font-serif {
-            font-family: "Playfair Display", serif;
-          }
-
-          .font-sans {
-            font-family: "Inter", sans-serif;
-          }
-
-          .luxury-gradient {
-            background: ${isDark
-              ? "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%)"
-              : "linear-gradient(135deg, #1c1c1c 0%, #2c2c2c 50%, #3c3c3c 100%)"};
-          }
-
-          .hero-bg {
-            background-attachment: fixed;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-          }
-
-          .fade-in-up {
-            opacity: 0;
-            transform: translateY(40px);
-            animation: fadeInUp 1s ease forwards;
-          }
-
-          .fade-in-up.delay-1 {
-            animation-delay: 0.3s;
-          }
-          .fade-in-up.delay-2 {
-            animation-delay: 0.6s;
-          }
-          .fade-in-up.delay-3 {
-            animation-delay: 0.9s;
-          }
-          .fade-in-up.delay-4 {
-            animation-delay: 1.2s;
-          }
-
-          @keyframes fadeInUp {
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          @keyframes float {
-            0%,
-            100% {
-              transform: translateY(0px);
-            }
-            50% {
-              transform: translateY(-20px);
-            }
-          }
-
-          .hover-scale {
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            will-change: transform;
-          }
-          .hover-scale:hover {
-            transform: scale(1.05);
-          }
-
-          .hover-lift {
-            transition: all 0.4s ease;
-          }
-          .hover-lift:hover {
-            transform: translateY(-8px);
-            box-shadow: ${isDark
-              ? "0 25px 50px rgba(0, 0, 0, 0.5)"
-              : "0 25px 50px rgba(0, 0, 0, 0.15)"};
-          }
-
-          .text-content {
-            transform: none !important;
-            transition: opacity 0.8s ease, transform 0.8s ease;
-          }
-
-          .luxury-card {
-            backdrop-filter: blur(20px);
-            background: ${isDark
-              ? "rgba(23, 23, 23, 0.95)"
-              : "rgba(255, 255, 255, 0.95)"};
-            border: 1px solid
-              ${isDark ? "rgba(212, 175, 55, 0.3)" : "rgba(212, 175, 55, 0.2)"};
-            box-shadow: ${isDark
-              ? "0 20px 40px rgba(0, 0, 0, 0.4)"
-              : "0 20px 40px rgba(0, 0, 0, 0.1)"};
-          }
-
-          .gradient-text {
-            background: linear-gradient(
-              135deg,
-              #d4af37 0%,
-              #e5c164 50%,
-              #d4af37 100%
-            );
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          }
-
-          .section-divider {
-            height: 1px;
-            background: ${isDark
-              ? "linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5), transparent)"
-              : "linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent)"};
-          }
-
-          .input-field {
-            background: ${isDark
-              ? "rgba(38, 38, 38, 0.8)"
-              : "rgba(255, 255, 255, 0.9)"};
-            border: 1px solid
-              ${isDark ? "rgba(212, 175, 55, 0.3)" : "rgba(212, 175, 55, 0.2)"};
-            color: ${isDark ? "#f5f5f5" : "#1c1c1c"};
-            transition: all 0.3s ease;
-          }
-
-          .input-field:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 3px
-              ${isDark ? "rgba(212, 175, 55, 0.2)" : "rgba(212, 175, 55, 0.1)"};
-            background: ${isDark
-              ? "rgba(38, 38, 38, 0.95)"
-              : "rgba(255, 255, 255, 1)"};
-          }
-
-          .input-field::placeholder {
-            color: ${isDark
-              ? "rgba(245, 245, 245, 0.5)"
-              : "rgba(28, 28, 28, 0.5)"};
-          }
-
-          .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            padding: 12px;
-            border-radius: 50%;
-            background: ${isDark
-              ? "rgba(212, 175, 55, 0.9)"
-              : "rgba(28, 28, 28, 0.9)"};
-            color: ${isDark ? "#1c1c1c" : "#f5f5f5"};
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            display: none;
-          }
-        `}
-      </style>
-
-      {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center luxury-gradient">
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0 hero-bg"
-            style={{
-              backgroundImage: `url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80")`,
-            }}
-          />
-        </div>
-
-        {/* Floating Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 bg-amber-400 rounded-full opacity-20"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `float ${
-                  3 + Math.random() * 4
-                }s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-6 lg:px-8">
-          <div className="fade-in-up text-content">
-            <h1 className="font-serif text-5xl md:text-7xl font-bold text-white mb-6">
-              <span className="gradient-text">Nagu Soo Booqo</span>
+    <>
+      {/* Hero */}
+      <section className="relative isolate overflow-hidden bg-roasted text-bone">
+        <div className="woven absolute inset-0 opacity-50" aria-hidden />
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-roasted via-roasted/95 to-shaash/45"
+          aria-hidden
+        />
+        <Container className="relative">
+          <div className="max-w-2xl py-24 sm:py-32">
+            <p className="eyebrow text-xawaash">Xiriir</p>
+            <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.98]">
+              Nala soo xiriir
             </h1>
-            <h2 className="font-serif text-2xl md:text-3xl font-light text-amber-300 mb-6">
-              Visit Us at KCC Cafe, Restaurant and Hotel
-            </h2>
-          </div>
-
-          <div className="fade-in-up delay-1 text-content">
-            <p className="font-sans text-lg text-stone-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Soo dhawoow meesha ugu quruxda badan ee Somalia. Nala soo xiriir
-              si aad u dalbato miis ama wax kale.
+            <p className="mt-4 font-mono text-[0.7rem] uppercase tracking-[0.24em] text-ciid/70">
+              Get in touch
             </p>
-            <p className="font-sans text-base text-stone-400 max-w-2xl mx-auto leading-relaxed">
-              Welcome to the most beautiful place in Somalia. Contact us to make
-              a reservation or for any inquiries.
+            <XawaashRule className="mt-5 max-w-xs text-xawaash" />
+            <p className="mt-6 max-w-lg text-base leading-relaxed text-ciid/85">
+              Book a table, ask about a large group, or just tell us you&apos;re
+              coming. Phone is fastest.
             </p>
           </div>
-        </div>
+        </Container>
       </section>
 
-      {/* Contact Cards Section */}
-      <section
-        className={`py-20 transition-all duration-700 ${
-          isDark
-            ? "bg-gradient-to-br from-neutral-900 via-amber-950/20 to-orange-950/20"
-            : "bg-gradient-to-br from-white via-amber-50/30 to-orange-50/30"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {contactInfo.map((info, index) => (
-              <div
-                key={index}
-                className={`luxury-card rounded-2xl p-8 text-center hover-lift fade-in-up delay-${
-                  index + 1
-                }`}
-              >
-                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 flex items-center justify-center shadow-xl">
-                  <info.icon className="w-8 h-8 text-white" />
-                </div>
-                <h3
-                  className={`font-serif text-xl font-semibold mb-2 transition-all duration-700 ${
-                    isDark ? "text-white" : "text-stone-900"
-                  }`}
-                >
-                  {info.titleSo}
-                </h3>
-                <h4 className="font-sans text-lg text-amber-600 mb-4 font-medium">
-                  {info.titleEn}
-                </h4>
-                {info.link ? (
-                  <a
-                    href={info.link}
-                    className="block group"
-                    target={info.link.startsWith("http") ? "_blank" : undefined}
-                    rel={
-                      info.link.startsWith("http")
-                        ? "noopener noreferrer"
-                        : undefined
-                    }
-                  >
-                    <p
-                      className={`font-sans mb-2 leading-relaxed transition-all duration-700 group-hover:text-amber-600 ${
-                        isDark ? "text-stone-300" : "text-stone-600"
-                      }`}
-                    >
-                      {info.infoSo}
-                    </p>
-                    <p
-                      className={`font-sans text-sm leading-relaxed transition-all duration-700 group-hover:text-amber-500 flex items-center justify-center gap-1 ${
-                        isDark ? "text-stone-400" : "text-stone-500"
-                      }`}
-                    >
-                      {info.infoEn}
-                      {info.link.startsWith("http") && (
-                        <ExternalLink className="w-3 h-3" />
-                      )}
-                    </p>
-                  </a>
-                ) : (
-                  <>
-                    <p
-                      className={`font-sans mb-2 leading-relaxed transition-all duration-700 ${
-                        isDark ? "text-stone-300" : "text-stone-600"
-                      }`}
-                    >
-                      {info.infoSo}
-                    </p>
-                    <p
-                      className={`font-sans text-sm leading-relaxed transition-all duration-700 ${
-                        isDark ? "text-stone-400" : "text-stone-500"
-                      }`}
-                    >
-                      {info.infoEn}
-                    </p>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section Divider */}
-      <div className="section-divider mx-auto max-w-4xl"></div>
-
-      {/* Map Section */}
-      <section
-        className={`py-32 transition-all duration-700 ${
-          isDark ? "bg-neutral-950" : "bg-stone-100"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16 fade-in-up text-content">
-            <h2
-              className={`font-serif text-5xl md:text-6xl font-semibold mb-6 transition-all duration-700 ${
-                isDark ? "text-white" : "text-stone-900"
-              }`}
-            >
-              Noo <span className="gradient-text">Kaalay</span>
-            </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-amber-600 mx-auto mb-8"></div>
-            <p
-              className={`font-sans text-xl max-w-2xl mx-auto transition-all duration-700 ${
-                isDark ? "text-stone-300" : "text-stone-600"
-              }`}
-            >
-              Find Us — Located in the heart of Golol, Somalia
-            </p>
-          </div>
-
-          <div className="luxury-card rounded-3xl overflow-hidden shadow-2xl hover-lift fade-in-up delay-1">
-            <div ref={mapRef} className="w-full h-[500px] bg-gray-100">
-              {/* Map will be loaded here */}
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center p-8">
-                  <div className="animate-spin w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                  <p className="font-sans text-white">
-                    Initializing interactive map...
+      <Section tone="surface">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-[1fr_22rem] lg:gap-16">
+            {/* Form */}
+            <div>
+              {sent ? (
+                <div className="border border-success/40 bg-success/5 p-8">
+                  <CheckCircle2
+                    className="h-9 w-9 text-success"
+                    strokeWidth={1.5}
+                  />
+                  <h2 className="mt-5 font-display text-3xl text-ink">
+                    Waa la helay
+                  </h2>
+                  <p className="translation mt-1.5">Message received</p>
+                  <p className="mt-5 max-w-prose text-base leading-relaxed text-ink-muted">
+                    Thanks {form.name.split(" ")[0]}. We&apos;ll come back to you
+                    on {form.phone} or {form.email}. If it&apos;s for today, give
+                    us a ring instead — we&apos;ll see it faster.
                   </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Map Integration Info */}
-          <div className="mt-8 text-center">
-            <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-                isDark
-                  ? "bg-neutral-800 text-stone-300"
-                  : "bg-white text-stone-600"
-              } shadow-lg`}
-            >
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              Ready for Google Maps API integration
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Reservation Form Section */}
-      <section
-        className={`py-32 transition-all duration-700 ${
-          isDark ? "bg-neutral-950" : "bg-stone-50"
-        }`}
-      >
-        <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16 fade-in-up text-content">
-            <h2
-              className={`font-serif text-5xl md:text-6xl font-semibold mb-6 transition-all duration-700 ${
-                isDark ? "text-white" : "text-stone-900"
-              }`}
-            >
-              Dalbo <span className="gradient-text">Miis</span>
-            </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-amber-600 mx-auto mb-8"></div>
-            <p
-              className={`font-sans text-xl max-w-2xl mx-auto transition-all duration-700 ${
-                isDark ? "text-stone-300" : "text-stone-600"
-              }`}
-            >
-              Make a Reservation — Secure your table at Somalia&apos;s premier
-              restaurant
-            </p>
-          </div>
-
-          <div className="luxury-card rounded-3xl p-12 hover-lift fade-in-up delay-1">
-            {submitStatus === "success" && (
-              <div className="mb-8 p-6 bg-green-500/20 border border-green-500/30 rounded-xl text-center">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                    <Star className="w-6 h-6 text-white" />
+                  <div className="mt-7 flex flex-wrap gap-3">
+                    <ButtonLink href={`tel:${SITE.phone.e164}`}>
+                      Call {SITE.phone.display}
+                    </ButtonLink>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSent(false);
+                        setForm((f) => ({ ...f, message: "" }));
+                      }}
+                    >
+                      Send another
+                    </Button>
                   </div>
                 </div>
-                <h3 className="font-serif text-xl font-semibold text-green-400 mb-2">
-                  Mahadsanid!
-                </h3>
-                <p className="font-sans text-green-300">
-                  Your reservation request has been submitted. We&apos;ll
-                  contact you shortly to confirm.
-                </p>
-              </div>
-            )}
+              ) : (
+                <>
+                  <SectionHeading
+                    eyebrow="Miis"
+                    so="Miis noo qabso"
+                    en="Reserve a table"
+                    lead="Fill this in and we'll confirm by phone. It's not an instant booking — we check the room first."
+                  />
 
-            <div className="space-y-8">
-              {/* Personal Information */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                      isDark ? "text-stone-300" : "text-stone-700"
-                    }`}
+                  <form
+                    onSubmit={submit}
+                    noValidate
+                    className="mt-10 flex flex-col gap-5"
                   >
-                    Magaca Koowaad / First Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                    placeholder="Enter your first name"
-                  />
-                </div>
-                <div>
-                  <label
-                    className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                      isDark ? "text-stone-300" : "text-stone-700"
-                    }`}
-                  >
-                    Magaca Labaad / Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                    placeholder="Enter your last name"
-                  />
-                </div>
-              </div>
+                    {error && <ErrorNote message={error} />}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                      isDark ? "text-stone-300" : "text-stone-700"
-                    }`}
-                  >
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                    placeholder="your.email@example.com"
-                  />
-                </div>
-                <div>
-                  <label
-                    className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                      isDark ? "text-stone-300" : "text-stone-700"
-                    }`}
-                  >
-                    Telefoon / Phone
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                    placeholder="+252 61 067 3194"
-                  />
-                </div>
-              </div>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <Input
+                        label="Your name"
+                        labelSo="Magacaaga"
+                        value={form.name}
+                        onChange={(e) => set("name", e.target.value)}
+                        autoComplete="name"
+                        required
+                      />
+                      <Input
+                        label="Phone"
+                        labelSo="Telefoon"
+                        type="tel"
+                        value={form.phone}
+                        onChange={(e) => set("phone", e.target.value)}
+                        autoComplete="tel"
+                        required
+                      />
+                    </div>
 
-              {/* Reservation Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div>
-                  <label
-                    className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                      isDark ? "text-stone-300" : "text-stone-700"
-                    }`}
-                  >
-                    Taariikhda / Date *
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleInputChange}
-                    required
-                    min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                  />
-                </div>
-                <div>
-                  <label
-                    className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                      isDark ? "text-stone-300" : "text-stone-700"
-                    }`}
-                  >
-                    Waqtiga / Time *
-                  </label>
-                  <select
-                    name="time"
-                    value={formData.time}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                  >
-                    <option value="">Select time</option>
-                    {timeSlots.map((time) => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                      isDark ? "text-stone-300" : "text-stone-700"
-                    }`}
-                  >
-                    Dadka Tirada / Party Size *
-                  </label>
-                  <select
-                    name="partySize"
-                    value={formData.partySize}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                  >
-                    <option value="">Select size</option>
-                    <option value="1">1 Guest</option>
-                    <option value="2">2 Guests</option>
-                    <option value="3">3 Guests</option>
-                    <option value="4">4 Guests</option>
-                    <option value="5">5 Guests</option>
-                    <option value="6">6 Guests</option>
-                    <option value="7">7 Guests</option>
-                    <option value="8">8 Guests</option>
-                    <option value="8+">8+ Guests</option>
-                  </select>
-                </div>
-              </div>
+                    <Input
+                      label="Email"
+                      labelSo="Iimayl"
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => set("email", e.target.value)}
+                      autoComplete="email"
+                      required
+                    />
 
-              {/* Occasion */}
-              <div>
-                <label
-                  className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                    isDark ? "text-stone-300" : "text-stone-700"
-                  }`}
+                    <div className="grid gap-5 sm:grid-cols-3">
+                      <Input
+                        label="How many people"
+                        labelSo="Immisa qof"
+                        type="number"
+                        min={1}
+                        value={form.partySize}
+                        onChange={(e) => set("partySize", e.target.value)}
+                      />
+                      <Input
+                        label="Date"
+                        labelSo="Taariikhda"
+                        type="date"
+                        min={todayISO()}
+                        value={form.date}
+                        onChange={(e) => set("date", e.target.value)}
+                      />
+                      <Select
+                        label="Time"
+                        labelSo="Saacadda"
+                        value={form.time}
+                        onChange={(e) => set("time", e.target.value)}
+                        options={TIMES.map((t) => ({ value: t, label: t }))}
+                      />
+                    </div>
+
+                    <Select
+                      label="What's the occasion"
+                      labelSo="Munaasabadda"
+                      value={form.occasion}
+                      onChange={(e) => set("occasion", e.target.value)}
+                      options={OCCASIONS}
+                    />
+
+                    <Textarea
+                      label="Anything else"
+                      labelSo="Wax kale"
+                      value={form.message}
+                      onChange={(e) => set("message", e.target.value)}
+                      rows={4}
+                      hint="Allergies, a high chair, a quiet corner — tell us here."
+                    />
+
+                    <Button type="submit" size="lg" loading={busy}>
+                      Send the request
+                    </Button>
+                  </form>
+                </>
+              )}
+            </div>
+
+            {/* Details */}
+            <aside className="flex flex-col gap-6">
+              <div className="border border-line bg-surface-raised p-6">
+                <h2 className="font-display text-2xl text-ink">Faahfaahin</h2>
+                <p className="translation mt-1">Details</p>
+
+                <ul className="mt-5 flex flex-col gap-5 text-sm">
+                  <li className="flex items-start gap-3">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>
+                      <span className="translation block">Where</span>
+                      <a
+                        href={SITE.address.mapsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-0.5 block text-ink underline-offset-4 hover:underline"
+                      >
+                        {SITE.address.full}
+                      </a>
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Phone className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>
+                      <span className="translation block">Phone</span>
+                      <a
+                        href={`tel:${SITE.phone.e164}`}
+                        className="tnum mt-0.5 block text-ink underline-offset-4 hover:underline"
+                      >
+                        {SITE.phone.display}
+                      </a>
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>
+                      <span className="translation block">Open</span>
+                      <span className="mt-0.5 block text-ink">
+                        {SITE.hours.en}
+                      </span>
+                      <span className="block text-xs text-ink-subtle">
+                        {SITE.hours.daysSo} · {SITE.hours.daysEn}
+                      </span>
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Mail className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>
+                      <span className="translation block">Email</span>
+                      {/* Not a mailto: the address on file is malformed. */}
+                      <span className="mt-0.5 block break-all text-ink">
+                        {SITE.email.display}
+                      </span>
+                    </span>
+                  </li>
+                </ul>
+
+                <a
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[2px] bg-accent-solid px-4 text-sm font-medium text-accent-ink transition-[filter] hover:brightness-110"
                 >
-                  Sababta Booqashada / Occasion
-                </label>
-                <select
-                  name="occasion"
-                  value={formData.occasion}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans"
-                >
-                  <option value="">Select occasion (optional)</option>
-                  {occasions.map((occasion) => (
-                    <option key={occasion.value} value={occasion.value}>
-                      {occasion.labelSo} / {occasion.label}
-                    </option>
-                  ))}
-                </select>
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp us
+                </a>
               </div>
 
-              {/* Special Requests */}
-              <div>
-                <label
-                  className={`block font-sans text-sm font-medium mb-3 transition-all duration-700 ${
-                    isDark ? "text-stone-300" : "text-stone-700"
-                  }`}
-                >
-                  Codsiyada Gaarka ah / Special Requests
-                </label>
-                <textarea
-                  name="specialRequests"
-                  value={formData.specialRequests}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className="w-full px-4 py-4 rounded-xl input-field focus:outline-none font-sans resize-none"
-                  placeholder="Any dietary restrictions, allergies, or special arrangements..."
+              <div className="overflow-hidden border border-line">
+                <iframe
+                  title="Map showing KCC on Argo Street, Golol"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                    SITE.address.full
+                  )}&z=15&output=embed`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-64 w-full"
                 />
               </div>
-
-              {/* Submit Button */}
-              <div className="text-center pt-8">
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className={`px-12 py-4 rounded-full font-sans font-semibold transition-all duration-300 hover-scale shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${
-                    isDark
-                      ? "bg-amber-600 text-white hover:bg-amber-500"
-                      : "bg-stone-900 text-white hover:bg-amber-600"
-                  }`}
-                >
-                  <span className="flex items-center justify-center">
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-3"></div>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <span className="font-serif">Gudbi Codsiga</span>
-                        <span className="mx-2">/</span>
-                        <span>Submit Request</span>
-                        <ArrowRight className="ml-2 w-5 h-5" />
-                      </>
-                    )}
-                  </span>
-                </button>
-              </div>
-            </div>
+            </aside>
           </div>
-        </div>
-      </section>
-
-      {/* Why Choose KCC Section */}
-      <section
-        className={`py-32 transition-all duration-700 ${
-          isDark
-            ? "bg-gradient-to-br from-neutral-900 via-amber-950/20 to-orange-950/20"
-            : "bg-gradient-to-br from-white via-amber-50/30 to-orange-50/30"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-20 fade-in-up text-content">
-            <h2
-              className={`font-serif text-5xl md:text-6xl font-semibold mb-6 transition-all duration-700 ${
-                isDark ? "text-white" : "text-stone-900"
-              }`}
-            >
-              Maxay Kaa <span className="gradient-text">Dhigaysaa</span>
-            </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-amber-600 mx-auto mb-8"></div>
-            <p
-              className={`font-sans text-xl max-w-3xl mx-auto transition-all duration-700 ${
-                isDark ? "text-stone-300" : "text-stone-600"
-              }`}
-            >
-              Why Choose KCC — Experience the finest Somali hospitality in
-              Somalia
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="text-center fade-in-up delay-1 hover-lift">
-              <div className="w-20 h-20 mx-auto mb-8 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 flex items-center justify-center shadow-xl">
-                <Award className="w-10 h-10 text-white" />
-              </div>
-              <h3
-                className={`font-serif text-2xl font-semibold mb-4 transition-all duration-700 ${
-                  isDark ? "text-white" : "text-stone-900"
-                }`}
-              >
-                Tayada Heer Sare ah
-              </h3>
-              <h4 className="font-sans text-lg text-amber-600 mb-4 font-medium">
-                Premium Quality
-              </h4>
-              <p
-                className={`font-sans leading-relaxed transition-all duration-700 ${
-                  isDark ? "text-stone-300" : "text-stone-600"
-                }`}
-              >
-                Waxaan bixinnaa cunto iyo qahwo heer sare ah oo la diyaariyey
-                habka dhaqameed ee Soomaalida.
-              </p>
-            </div>
-
-            <div className="text-center fade-in-up delay-2 hover-lift">
-              <div className="w-20 h-20 mx-auto mb-8 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 flex items-center justify-center shadow-xl">
-                <Heart className="w-10 h-10 text-white" />
-              </div>
-              <h3
-                className={`font-serif text-2xl font-semibold mb-4 transition-all duration-700 ${
-                  isDark ? "text-white" : "text-stone-900"
-                }`}
-              >
-                Jaww Qoys
-              </h3>
-              <h4 className="font-sans text-lg text-amber-600 mb-4 font-medium">
-                Family Atmosphere
-              </h4>
-              <p
-                className={`font-sans leading-relaxed transition-all duration-700 ${
-                  isDark ? "text-stone-300" : "text-stone-600"
-                }`}
-              >
-                Meel nabdoon oo qoys iyo saaxiibo ay ku kulmi karaan wakhti
-                fiican oo ay ku qaadan karaan.
-              </p>
-            </div>
-
-            <div className="text-center fade-in-up delay-3 hover-lift">
-              <div className="w-20 h-20 mx-auto mb-8 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 flex items-center justify-center shadow-xl">
-                <Users className="w-10 h-10 text-white" />
-              </div>
-              <h3
-                className={`font-serif text-2xl font-semibold mb-4 transition-all duration-700 ${
-                  isDark ? "text-white" : "text-stone-900"
-                }`}
-              >
-                Adeeg Hufan
-              </h3>
-              <h4 className="font-sans text-lg text-amber-600 mb-4 font-medium">
-                Exceptional Service
-              </h4>
-              <p
-                className={`font-sans leading-relaxed transition-all duration-700 ${
-                  isDark ? "text-stone-300" : "text-stone-600"
-                }`}
-              >
-                Kooxda shaqaalaheena waa dad xirfad leh oo jecel in ay siiyaan
-                adeeg heer sare ah.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+        </Container>
+      </Section>
+    </>
   );
-};
-
-export default LuxuryContactPage;
+}

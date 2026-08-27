@@ -1,6 +1,295 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap");
 
-body{
-  overflow-x:hidden ;
+/* Dark mode is driven by a class on <html>, set before paint by the inline
+   script in layout.tsx so there is no flash of the wrong theme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   XARRAGO — the KCC palette
+   Somali for "elegance / adornment". Warm roasted ground, spice amber, and a
+   deep indigo counter-accent drawn from Somali textile and the flag, which is
+   what keeps this off the generic cream-and-gold restaurant look.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-roasted: #17110c; /* roasted coffee ground — warm near-black */
+  --color-bone: #f7f1e6; /* bone / unbleached paper */
+  --color-xawaash: #c8892f; /* spice amber — turmeric, cardamom husk */
+  --color-shaash: #123a54; /* deep indigo — Somali textile */
+  --color-cilaan: #8c4a2f; /* henna clay */
+  --color-ciid: #d9c9ae; /* sand */
+
+  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-card: 0.25rem;
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Semantic tokens. Components only ever reference these, never raw hexes —
+   which is how one theme switch repaints the whole site.
+   --------------------------------------------------------------------------- */
+:root {
+  --surface: #f7f1e6;
+  --surface-raised: #fffdf8;
+  --surface-sunken: #efe6d6;
+  --surface-inverse: #17110c;
+
+  --ink: #17110c;
+  --ink-muted: #6b5b49;
+  --ink-subtle: #7a6a57;
+  --ink-inverse: #f7f1e6;
+
+  --line: #e0d3bc;
+  --line-strong: #c9b899;
+
+  --accent: #8a5a15; /* amber, darkened until it passes 4.5:1 on bone */
+  --accent-solid: #c8892f; /* amber for fills, borders, rules */
+  --accent-ink: #17110c; /* text sitting on an accent fill */
+
+  --deep: #123a54; /* shaash indigo */
+  --deep-solid: #123a54;
+  --deep-ink: #f7f1e6;
+
+  --danger: #9b2c2c;
+  --success: #2f6b4f;
+
+  --shadow-raised: 0 1px 2px rgb(23 17 12 / 0.06), 0 8px 24px -12px
+    rgb(23 17 12 / 0.18);
+}
+
+.dark {
+  --surface: #17110c;
+  --surface-raised: #211913;
+  --surface-sunken: #0e0a07;
+  --surface-inverse: #f7f1e6;
+
+  --ink: #f2e9da;
+  --ink-muted: #b0a08b;
+  --ink-subtle: #8a7a66;
+  --ink-inverse: #17110c;
+
+  --line: #33261b;
+  --line-strong: #4a3826;
+
+  --accent: #e0a445;
+  --accent-solid: #c8892f;
+  --accent-ink: #17110c;
+
+  --deep: #7fb4d4;
+  --deep-solid: #123a54;
+  --deep-ink: #f7f1e6;
+
+  --danger: #f28b82;
+  --success: #7fc9a3;
+
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+}
+
+/* `inline` keeps the utilities pointing at the live var, so toggling .dark
+   repaints without regenerating any CSS. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-inverse: var(--surface-inverse);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-inverse: var(--ink-inverse);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-solid: var(--accent-solid);
+  --color-accent-ink: var(--accent-ink);
+
+  --color-deep: var(--deep);
+  --color-deep-solid: var(--deep-solid);
+  --color-deep-ink: var(--deep-ink);
+
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One visible focus style everywhere, rather than per-component guesswork. */
+  :focus-visible {
+    outline: 2px solid var(--accent-solid);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-solid);
+    color: var(--accent-ink);
+  }
+
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+
+  /* Native date pickers render an invisible black icon on the dark theme. */
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.6);
+  }
+}
+
+@layer utilities {
+  /* --- The signature: bilingual pairing ---------------------------------- */
+  /* Somali leads at display size; English sits under it as a mono translation
+     label. Used on every section heading across the site. */
+  .translation {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-subtle);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* --- Printed-menu leader dots ------------------------------------------ */
+  .leader {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+  }
+  .leader > .leader-fill {
+    flex: 1 1 auto;
+    margin: 0 0.6rem;
+    border-bottom: 1px dotted var(--line-strong);
+    transform: translateY(-0.3em);
+    min-width: 1.5rem;
+  }
+
+  .tnum {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Woven texture, lifted from Somali mat geometry -------------------- */
+  .woven {
+    background-image: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--accent-solid) 7%, transparent) 0 1px,
+        transparent 1px 9px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        color-mix(in srgb, var(--accent-solid) 7%, transparent) 0 1px,
+        transparent 1px 9px
+      );
+  }
+
+  .hairline-t {
+    border-top: 1px solid var(--line);
+  }
+
+  /* --- Motion ------------------------------------------------------------- */
+  .rise {
+    animation: rise 0.9s var(--ease-out-soft) both;
+  }
+  .rise-1 {
+    animation-delay: 0.08s;
+  }
+  .rise-2 {
+    animation-delay: 0.16s;
+  }
+  .rise-3 {
+    animation-delay: 0.24s;
+  }
+  .rise-4 {
+    animation-delay: 0.32s;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.25rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    transition: opacity 0.8s var(--ease-out-soft),
+      transform 0.8s var(--ease-out-soft);
+  }
+  .reveal[data-visible="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
 }

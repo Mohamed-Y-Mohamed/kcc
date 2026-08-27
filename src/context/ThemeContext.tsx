@@ -1,82 +1,78 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-type ThemeType = "light" | "dark";
+export type Theme = "light" | "dark";
 
-interface ThemeContextType {
-  theme: ThemeType;
+interface ThemeContextValue {
+  theme: Theme;
   toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 }
 
-// Create a context with default values
-const ThemeContext = createContext<ThemeContextType>({
-  theme: "light",
-  toggleTheme: () => {},
-});
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  // Check if we're on the client side before accessing window/localStorage
-  const [mounted, setMounted] = useState(false);
+export const STORAGE_KEY = "kcc-theme";
 
-  // Initialize theme from localStorage if available, otherwise default to 'light'
-  const [theme, setTheme] = useState<ThemeType>("light");
+/**
+ * Runs before first paint (injected in layout.tsx) so the correct theme class
+ * is already on <html> when the browser paints. Without it every reload flashes
+ * the light theme first.
+ */
+export const themeInitScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem('${STORAGE_KEY}');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var dark = stored ? stored === 'dark' : prefersDark;
+    document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  } catch (e) {}
+})();
+`;
 
-  // Set mounted state once component mounts
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // The inline script has already put the class on <html>. Read it back on
+  // mount rather than guessing, so state and DOM never disagree.
+  const [theme, setThemeState] = useState<Theme>("light");
+
   useEffect(() => {
-    setMounted(true);
-
-    // Get saved theme from localStorage
-    const savedTheme = localStorage.getItem("theme") as ThemeType;
-
-    // Check if user has dark mode preference in their OS
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-
-    // Use saved theme, or OS preference, or default to light
-    if (savedTheme === "dark" || savedTheme === "light") {
-      setTheme(savedTheme);
-    } else if (prefersDark) {
-      setTheme("dark");
-    }
-
-    // Apply theme class to document
-    document.documentElement.classList.toggle(
-      "dark",
-      savedTheme === "dark" || (!savedTheme && prefersDark)
+    setThemeState(
+      document.documentElement.classList.contains("dark") ? "dark" : "light"
     );
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
+  const setTheme = useCallback((next: Theme) => {
+    setThemeState(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    document.documentElement.style.colorScheme = next;
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Private browsing / storage disabled — the theme just won't persist.
+    }
+  }, []);
 
-    // Save to localStorage
-    localStorage.setItem("theme", newTheme);
-
-    // Toggle class on document
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
-
-  // Return the context value with the current state and the toggle function
-  const contextValue = {
-    theme,
-    toggleTheme,
-  };
-
-  // During SSR, provide default values
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  const toggleTheme = useCallback(
+    () => setTheme(theme === "dark" ? "light" : "dark"),
+    [theme, setTheme]
+  );
 
   return (
-    <ThemeContext.Provider value={contextValue}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );
-};
+}
 
-export const useTheme = () => {
-  return useContext(ThemeContext);
-};
+export function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error("useTheme must be used inside <ThemeProvider>");
+  return ctx;
+}

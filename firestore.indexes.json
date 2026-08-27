@@ -1,0 +1,14 @@
+{
+  "indexes": [
+    {
+      "//": "Availability lookup: one equality on roomId plus a range on checkOut.",
+      "collectionGroup": "dateBlocks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "roomId", "order": "ASCENDING" },
+        { "fieldPath": "checkOut", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
